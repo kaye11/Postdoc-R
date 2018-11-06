@@ -61,16 +61,33 @@ PIC$PIC <- PIC$TC-PIC$AC
 PIC$PICpercell <- (PIC$PIC/PIC$Cellcount)*(10)^-3#in g
 PIC$PICpercellpg <- PIC$PICpercell*1e12
 
+require (ggplot2)
+require(plotly)
+require(grid)
+require(ggthemes)
+source ("theme_Publication.R")
+source("resizewin.R")
+
+ggplotly(ggplot(data=PIC, aes(x=Strain, y=PICpercellpg)) + geom_boxplot()+geom_point(size=2) +theme_Publication())
+
 require (dplyr)
 PIC <- mutate(PIC, group = ifelse(PICpercellpg < 1 , "naked", "calcified"))
+
+ggplotly(ggplot(data=PIC, aes(x=group, y=PICpercellpg)) + geom_boxplot()+geom_point(size=2) +theme_Publication())
+
 PIC <- mutate(PIC, rad = ifelse(group == "naked" ,  2E-6,  2.3E-6)) #in m
 
 PIC$volume <- (4/3)*pi*(PIC$rad*100)^3 #in cm3
 PIC$Den_cell <- PIC$PICpercell/PIC$volume #g/m3
 PIC$Den_celltotal <- PIC$Den_cell+Den_OcM
 
+ggplotly(ggplot(data=PIC, aes(x=Strain, y=Den_celltotal, color=group)) + geom_boxplot()+geom_point(size=2) 
+         +theme_Publication())
+
+#PIC <- mutate(PIC, group2 = ifelse(Den_celltotal < 1.025 , "bouyant", "sink")) ---> not a good grouping variable
+
 #use Stokes equation to calculate sinking velocity
-Sinkvel_Paasche <- ((2*(2E-4)*981*(1.19-1.027))/9*(mu*10))*864 #meter per day
+#Sinkvel_Paasche <- ((2*(2E-4)*981*(1.19-1.027))/9*(mu*10))*864 #meter per day
 #Stokes calculator use a different formula, see notes on thinking notebook
 
 #Now run for all cells
@@ -78,26 +95,31 @@ Sinkvel_Paasche <- ((2*(2E-4)*981*(1.19-1.027))/9*(mu*10))*864 #meter per day
 PIC$SinkVel <- ((2*((PIC$rad)^2)*(9.8*(86400)^2)*(PIC$Den_celltotal-Den_CH2O))/9*(mu*10))*864 #meter per day
 
 #plot sinking velocity vs calcification
-source('theme_Publication.R')
-source("resizewin.R")
-require(ggplot2)
-require(grid)
-require(ggthemes)
 
 resize.win(12,9)
 grid.newpage()
-text <- element_text(size = 20, color="black") #change the size of the axes
+#text <- element_text(size = 20, color="black") #change the size of the axes
 
 ggplot(data=PIC, aes(x=PICpercellpg, y=SinkVel, color=Strain)) + geom_point(size=5)+theme_Publication()+
   labs(y = expression("Sinking velocity"~("m"~day^-1)), x = expression("PIC"~cell^-1)) 
 
 PIC_reg <- lm(SinkVel~PICpercellpg, data=PIC) #essentially perfect fit: summary may be unreliable haha
+summary(PIC_reg)
+plot(residuals.lm(PIC_reg))
 layout(matrix(1:4,2,2))
 plot(PIC_reg)
 
 cor(PIC$PICpercellpg, PIC$SinkVel)
+#cor=0.9997279
 
-#perfect r=1 relationship
+##make new dataframe depending on experimental PIC values
+a <- sample (PIC$PICpercellpg) #just makes the same length as your df
+b <- sample (PIC$PICpercellpg)
+c <- sample (PIC$PICpercellpg)
+
+new_PIC = as.data.frame (list(a, b, c))
+#how to merge the lists
+
 
 #compute beta kernels
 #assume density of a viral particle is same as seawater
