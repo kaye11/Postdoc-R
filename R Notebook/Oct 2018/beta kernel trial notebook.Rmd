@@ -1,0 +1,34 @@
+---
+title: "beta kernel"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+```{r}
+
+####FOR EXPONENTS USE (n)^n RATHER THAN E
+
+##calculating beta
+
+#values needed 
+
+K= 1.38064852*(10)^-23 #m2 kg/ s2 K boltzmann constant
+mu= 1.126*(10)^-3 #kg/m s dynamic viscosity in 18C
+mu2= 1.291*(10)^-3
+v= 1.099*(10)^-6 #m2/s kinematic viscosity
+Reh= 2E-6 #in m radius Ehux
+Rehv= 90E-9 #in m radius virus
+Temp <- 18+273.15 #temp in kelvin, here assuming 18C
+
+BM_Burd <- ((2/3)*(K*Temp/mu)*((Reh+Rehv)^2/(Reh*Rehv)))*(10)^4 #in cm2/s
+BM_CJ <- ((K*Temp)/(3*pi*mu*Rehv*2))*(10)^4 #in cm2/s
+E <- BM_CJ*(10)^4
+```
+
