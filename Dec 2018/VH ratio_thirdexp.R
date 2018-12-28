@@ -18,12 +18,12 @@ cell <- host %>% filter(stain %in% c("countperml"))
 ehv <- virbac %>% filter(cell %in% c("EhV"))
 
 cell <- cell%>% arrange (factor(maingroup, c("still-control", "still-infected", 
-                               "turbulent-control", "turbulent-infected", 
-                               "still-viral particles", "turbulent-viral particles")))
+                                             "turbulent-control", "turbulent-infected", 
+                                             "still-viral particles", "turbulent-viral particles")))
 
 ehv <- ehv%>% arrange (factor(maingroup, c("still-control", "still-infected", 
-                                            "turbulent-control", "turbulent-infected", 
-                                            "still-viral particles", "turbulent-viral particles")))
+                                           "turbulent-control", "turbulent-infected", 
+                                           "still-viral particles", "turbulent-viral particles")))
 
 
 cell.ehv <- cbind(cell [c(5:6)], ehv [c(6, 8:13)])
@@ -74,5 +74,5 @@ ggplot(data=sum.all, aes(x=time, y=VHdiv, colour=group2)) +
   scale_color_manual (values = c(control="lightcoral", viralparticles="seagreen3", infected="steelblue2")) +
   theme_Publication() + 
   facet_grid(~group1)+ theme(legend.title=element_blank())
-  
+
 

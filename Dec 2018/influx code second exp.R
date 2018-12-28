@@ -69,13 +69,13 @@ influxdata$maingroup <- as.factor(paste(influxdata$group1, influxdata$group2, se
 #divide cellcount measurements by 10^7
 influxdata$countpermldiv <- influxdata$count/10^7
 
-influxdata$maingroup <- factor(influxdata$maingroup,
-                               levels = c("still-control", "still-infected", 
-                                          "turbulent-control", "turbulent-infected", 
-                                          "still-viralparticles", "turbulent-viralparticles"),
-                               labels = c("still-control", "still-infected", 
-                                          "turbulent-control", "turbulent-infected", 
-                                          "still-viral particles", "turbulent-viral particles"))
+#influxdata$maingroup <- factor(influxdata$maingroup,
+                               #levels = c("still-control", "still-infected", 
+                                #          "turbulent-control", "turbulent-infected", 
+                                #          "still-viralparticles", "turbulent-viralparticles"),
+                               #labels = c("still-control", "still-infected", 
+                                #          "turbulent-control", "turbulent-infected", 
+                                 #         "still-viral particles", "turbulent-viral particles"))
 
 ##code for plots next
 sum.all <- summarySE(influxdata, measurevar = "countpermldiv", 

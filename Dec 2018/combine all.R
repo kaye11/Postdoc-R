@@ -23,48 +23,23 @@ second$exp <- "2nd"
 all <- rbind(first.filt, second, third)
 all.dropvp <- all[! all$group2=="viralparticles",  ]
 
-#make new factor
-all.dropvp$supergroup <- as.factor(paste(all.dropvp$maingroup, all.dropvp$exp, sep="-"))
-
-all.dropvp$rpm <- case_when(
-  all.dropvp$supergroup == "still-infected-1st"  ~ "0 rpm",
-  all.dropvp$supergroup == "still-infected-2nd"  ~ "0 rpm",
-  all.dropvp$supergroup == "still-infected-3rd"  ~ "0 rpm",
-  all.dropvp$supergroup == "turbulent-infected-1st"  ~ "5 rpm",
-  all.dropvp$supergroup == "turbulent-infected-2nd"  ~ "15 rpm",
-  all.dropvp$supergroup == "turbulent-infected-3rd"  ~ "5 rpm", 
-  all.dropvp$supergroup == "still-control-1st"  ~ "0 rpm",
-  all.dropvp$supergroup == "still-control-2nd"  ~ "0 rpm",
-  all.dropvp$supergroup == "still-control-3rd"  ~ "0 rpm",
-  all.dropvp$supergroup == "turbulent-control-1st"  ~ "5 rpm",
-  all.dropvp$supergroup == "turbulent-control-2nd"  ~ "15 rpm",
-  all.dropvp$supergroup == "turbulent-control-3rd"  ~ "5 rpm",
-  TRUE ~ as.character(all.dropvp$maingroup)
-)
-
-all.dropvp$supergroup2 <- as.factor(paste(all.dropvp$maingroup, all.dropvp$rpm, sep="-"))
-
-ggplotly(ggplot(data=all.dropvp, aes(x=time, y=value, colour=supergroup2, fill=supergroup2)) +geom_boxplot() + 
-           facet_grid(stain~treatment, scales="free")+ geom_point()+ theme_bw())
-
 sum.all.group <- summarySE(all.dropvp, measurevar = "value", 
                            groupvars = c("supergroup2", "maingroup", "group1", "group2", 
                                          "time", "stain", "rpm"))
 
-sum.all.group2 <- summarySE(all.dropvp, measurevar = "value", 
+sum.all.group2 <- summarySE(alldropvp, measurevar = "value", 
                             groupvars = c("maingroup", "group1", "group2", "time", "stain", "exp"))
 
 all.dropvp$supergroup2 <- factor(all.dropvp$supergroup2, levels = c("still-control-0 rpm",  "still-infected-0 rpm","turbulent-control-5 rpm" , "turbulent-infected-5 rpm", "turbulent-control-15 rpm", "turbulent-infected-15 rpm"))
 
 
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7")
 
 ##what I wanted
 ggplot(data=all.dropvp %>% 
          filter(stain %in% c("sytox")), aes(x=time, y=value, linetype=supergroup2)) +
   geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
-  labs (y= expression("cells per mL"~ scriptstyle(x)~"10"^~6)) +
+  labs (y= expression("E. huxleyi"~ "mL"^~-1~ scriptstyle(x)~"10"^~6)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
   scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
@@ -76,7 +51,7 @@ cellcount <- ggplot(data=all.dropvp %>%
                        filter(stain %in% c("countpermldiv")), aes(x=time, y=value, linetype=supergroup2)) +
   geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
-  labs (y= expression("cells per mL"~ scriptstyle(x)~"10"^~6)) +
+  labs (y= expression("E.huxleyi"~ "mL"^~-1~ scriptstyle(x)~"10"^~6)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
   scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
@@ -103,6 +78,14 @@ sytox <- ggplot(data=all.dropvp %>%
 resize.win(12,16)
 grid.newpage()
 grid.draw(rbind(ggplotGrob(cellcount), ggplotGrob(sytox), size = "last"))
+
+
+#export data
+setwd("D:/R program")
+require(openxlsx)
+write.xlsx(all.dropvp, file = "Postdoc-R/Exported Tables/allexp_sytox_minusvp.xlsx")
+
+
 
 #calculate alpha
 

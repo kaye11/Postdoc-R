@@ -1,5 +1,5 @@
 library(readxl)
-influxdata <- read_excel("D:/Postdoc/Experiments/181127 Infection Third/181214 rerun.xls")
+influxdata <- read_excel("D:/Postdoc/Experiments/181127 Infection Third/14-Dec-2018 run.xls")
 
 require(ggplot2)
 require(Rmisc)
@@ -44,6 +44,9 @@ influxdata$maingroup <- as.factor(paste(influxdata$group1, influxdata$group2, se
 
 #divide cellcount measurements by 10^7
 influxdata$countpermldiv <- influxdata$count/10^7
+
+ggplotly(ggplot(data=influxdata, aes(x=time, y=countpermldiv, colour=group2)) +geom_boxplot() + 
+           facet_grid(cell~group1, scales="free")+ geom_point()+ theme_bw())
 
 #export data
 setwd("D:/R program")
