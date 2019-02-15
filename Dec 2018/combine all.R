@@ -7,7 +7,7 @@ first <- read_excel("Postdoc-R/Exported Tables/FirstExp_sytox.xlsx")
 require(ggplot2)
 require(Rmisc)
 require (plotly)
-source("theme_Publication.R")
+source("theme_Publication2.R")
 require(reshape2)
 source("resizewin.R")
 require(dplyr)
@@ -37,8 +37,8 @@ all.dropvp$supergroup2 <- factor(all.dropvp$supergroup2, levels = c("still-contr
 ##what I wanted
 ggplot(data=all.dropvp %>% 
          filter(stain %in% c("sytox")), aes(x=time, y=value, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
   labs (y= expression("E. huxleyi"~ "mL"^~-1~ scriptstyle(x)~"10"^~6)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
@@ -49,33 +49,33 @@ ggplot(data=all.dropvp %>%
 
 cellcount <- ggplot(data=all.dropvp %>% 
                        filter(stain %in% c("countpermldiv")), aes(x=time, y=value, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
   labs (y= expression("E.huxleyi"~ "mL"^~-1~ scriptstyle(x)~"10"^~6)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
   scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
-  theme_Publication() +
+  theme_Publication2() +
   #facet_grid(~group1) +
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none")
 
 sytox <- ggplot(data=all.dropvp %>% 
                   filter(stain %in% c("sytox")), aes(x=time, y=value, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1) + 
   labs(y="% sytox stained", x= "hours post-infection") +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
   scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
-  theme_Publication() +
+  theme_Publication2() +
   #facet_grid(~group1) +
   theme(strip.text = element_blank(), legend.title=element_blank())
 
-resize.win(12,16)
+resize.win(14,16)
 grid.newpage()
 grid.draw(rbind(ggplotGrob(cellcount), ggplotGrob(sytox), size = "last"))
 

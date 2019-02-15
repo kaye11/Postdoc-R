@@ -110,8 +110,8 @@ all.dropvp$supergroup2 <- factor(all.dropvp$supergroup2, levels = c("still-contr
 
 ggplot(data=all.dropvp %>% 
          filter(cell %in% c("EhV")), aes(x=time, y=countpermldiv2, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
   labs (y= expression("cells per mL"~ scriptstyle(x)~"10"^~7)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
@@ -122,33 +122,36 @@ ggplot(data=all.dropvp %>%
 
 EhV<- ggplot(data=all.dropvp %>% 
                       filter(cell %in% c("EhV")), aes(x=time, y=countpermldiv2, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
   labs (y= expression("EhV"~ "mL"^~-1~ scriptstyle(x)~"10"^~8)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
   scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
-  theme_Publication() +
+  theme_Publication2() +
   #facet_grid(~group1) +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none")
+  theme(legend.title =element_blank())
+
+resize.win(9, 5.8)
+EhV
 
 bacteria <- ggplot(data=all.dropvp %>% 
                   filter(cell %in% c("Bacteria")), aes(x=time, y=countpermldiv2, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
   labs (y= expression("bacteria"~ "mL"^~-1~ scriptstyle(x)~"10"^~8), x="hours post-infection") +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
   scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
-  theme_Publication() +
+  theme_Publication2() +
   #facet_grid(~group1) +
   theme(strip.text = element_blank(), legend.title=element_blank())
 
-resize.win(12,16)
+resize.win(14,16)
 grid.newpage()
 grid.draw(rbind(ggplotGrob(EhV), ggplotGrob(bacteria), size = "last"))
 
@@ -201,8 +204,8 @@ resize.win(14,15)
 
 EhV.all <- ggplot(data=all %>% 
                     filter(cell %in% c("EhV")), aes(x=time, y=countpermldiv2, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
   labs (y= expression("EhV"~ "mL"^~-1~ scriptstyle(x)~"10"^~8)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 7, 1, 16, 13, 2, 17, 11)) +
@@ -212,7 +215,7 @@ EhV.all <- ggplot(data=all %>%
                                 "#56B4E9", "#56B4E9", "#56B4E9")) +
   scale_linetype_manual(values = c("longdash", "solid", "dotted", "longdash", "solid", "dotted", 
                                    "longdash", "solid", "dotted")) + 
-  theme_Publication() + 
+  theme_Publication2() + 
   theme(legend.key.width=unit(3,"line"), legend.title = element_blank()) +  
   guides(linetype=guide_legend(ncol=3), colour=guide_legend(ncol=3), shape=guide_legend(ncol=3), 
          fill=guide_legend(ncol=3) ) +
@@ -220,8 +223,8 @@ EhV.all <- ggplot(data=all %>%
 
 bacteria.all <- ggplot(data=all %>% 
                          filter(cell %in% c("Bacteria")), aes(x=time, y=countpermldiv2, linetype=supergroup2)) +
-  geom_point(size=5, aes(colour=supergroup2, shape=supergroup2)) + 
-  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2) + 
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
   labs (y= expression("bacteria"~ "mL"^~-1~ scriptstyle(x)~"10"^~8), x="hrs post-infection") +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
   scale_shape_manual (values= c(0, 15, 7, 1, 16, 13, 2, 17, 11)) +
@@ -231,12 +234,13 @@ bacteria.all <- ggplot(data=all %>%
                                 "#56B4E9", "#56B4E9", "#56B4E9")) +
   scale_linetype_manual(values = c("longdash", "solid", "dotted", "longdash", "solid", "dotted", 
                                    "longdash", "solid", "dotted")) + 
-  theme_Publication() + 
+  theme_Publication2() + 
   theme(legend.key.width=unit(3,"line"), legend.title = element_blank()) +  
   guides(linetype=guide_legend(ncol=3), colour=guide_legend(ncol=3), shape=guide_legend(ncol=3), 
          fill=guide_legend(ncol=3) ) +
   theme(strip.text = element_blank(), legend.title=element_blank())
 
+resize.win(14,16)
 grid.newpage()
 grid.draw(rbind(ggplotGrob(EhV.all), ggplotGrob(bacteria.all), size = "last"))
 
