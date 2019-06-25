@@ -20,12 +20,17 @@ adsdata [, ratiolossln:= log((virusc/(virusc[match("0", time)]))), by= c("ID")]
 #plotting
 library(ggplot2)
 library(plotly)
+source ("resizewin.R")
+resize.win (9, 6)
 ggplot(data = adsdata, aes(x=as.factor(time), y=ratiolossln, color=treatment)) + geom_boxplot()
 ggplot(data = adsdata, aes(x=time, y=ratiolossln, color=treatment, fill=treatment)) + geom_point(size=5) + 
   geom_smooth(method="lm", alpha=0.3)
 
 ggplot(data = adsdata, aes(x=time, y=virusc, color=treatment, fill=treatment)) + geom_point(size=5) + 
   geom_smooth(method="lm", alpha=0.3)
+
+library (Rmisc)
+sum.ratioloss <- summarySE (adsdata, measurevar = "ratiolossln", groupvars = c("treatment", "time"))
 
 #what if blanks are subtracted already
 adsdata [, blanksubs:= (ratiolossln-(ratiolossln[match ("blanks", treatment)])), by=c("reptime")]
@@ -37,6 +42,8 @@ ggplot(data = adsdata, aes(x=time, y=blanksubs, color=treatment, fill=treatment)
 
 ggplot(data = adsdata, aes(x=time, y=blanksubsvirusc, color=treatment, fill=treatment)) + geom_point(size=5) + 
   geom_smooth(method="lm", alpha=0.3)
+
+data.sum <- summarySE (adsdata, measurevar = "ratiolossln", groupvars = c("treatment"))
 
 #getting slopes
 slopes <- adsdata [,list(intercept=coef(lm(ratiolossln~time))[1], coef=coef(lm(ratiolossln~time))[2]),by=c("ID")]
