@@ -99,6 +99,64 @@ grid.newpage()
 grid.draw(rbind(ggplotGrob(cellcount), ggplotGrob (fvfm), ggplotGrob(sytox), size = "last"))
 
 
+##cellcount
+
+resize.win(6.6)
+ggplot(data=all %>% 
+                      filter(parameter %in% c("countpermldiv")), aes(x=time, y=value, linetype=supergroup)) +
+  geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
+  labs (y= expression("E.huxleyi"~   "mL"^~-1~ scriptstyle(x)~"10"^~6)) +
+  scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
+  scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
+  scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
+  theme_Publication2() +
+  #facet_grid(~group1) +
+  theme( legend.position ="none")
+
+ggplot(data=all %>% filter (parameter == "countpermldiv" & group2 =="infected"), 
+       aes(x=time, y=value, linetype=supergroup)) +
+  geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
+  labs (y= expression("E.huxleyi" ~   "mL"^~-1~ scriptstyle(x)~"10"^~6), 
+        x="hours post-infection") +
+  scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
+  scale_shape_manual (values= c(15, 16, 17)) +
+  scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9")) +
+  scale_fill_manual (values = c("#999999", "#E69F00", "#56B4E9")) +
+  scale_linetype_manual(values = c("longdash", "longdash",  "longdash")) +
+  theme_Publication2() +
+  #facet_grid(~group1) +
+  theme( legend.position ="none")
+
+
+all$supergroup2 <- factor(all$supergroup,
+                    levels = c("still-control-0", "still-infected-0", 
+                               "turbulent-control-350", "turbulent-infected-350",
+                               "turbulent-control-600", "turbulent-infected-600"),
+                    labels = c("still-control", "still-infected", 
+                               "mid-control", "mid-infected",
+                               "stormy-control", "stormy-infected"))
+
+ggplot(data=all %>% 
+         filter(parameter %in% c("sytox")), aes(x=time, y=value, linetype=supergroup2)) +
+  geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
+  geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1) + 
+  labs(y="% sytox stained", x= "hours post-infection") +
+  scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
+  scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
+  scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
+  theme_Publication2() +
+  #facet_grid(~group1) +
+  theme(strip.text = element_blank(), legend.title=element_blank())
+
+
+
+
 #export data
 setwd("D:/R program")
 require(openxlsx)

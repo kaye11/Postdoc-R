@@ -13,7 +13,6 @@ Den_OcM = 1.05 #g/cm3 density organic cell matter
 Den_CH2O= 1.025 #g/cm3 density seawater at 18C
 hostnum <- (10)^3
 virnum <- hostnum*10
-lithnum <- hostnum*50
 
 require (ggplot2)
 require(plotly)
@@ -30,25 +29,6 @@ grid.newpage()
 ## ------------------------------------------------------------------------
 #Brownian motion (BM)
 #1. make a data frame
-library(readr)
-BM2 <- read_csv("Postdoc-R/CSV Files/BM.csv")
-View(BM)
-
-#2. calculate beta (beta)
-BM2$beta_s <- (2*(K*(10)^4)*Temp*(((BM2$rad+Rehv)*100)^2))/((3*mu*10)*(BM2$rad*Rehv*1e4)) #m3/s
-BM$beta_d <- BM2$beta_s*86400 #to cm3/day
-
-#for CJs data
-
-# go back to this later
-#3. calculate encounters (E)
-BM2$E_V<- BM2$beta_d*BM2$hostnum
-BM2$E_HV <- BM2$beta_d*BM2$virnum*BM2$hostnum #
-
-BM2
-
-
-##no function of host and virus
 BM <- data.frame (group= c("naked", "calcified"), rad= c(1.8E-6, 2.3E-6)) 
 
 #2. calculate beta (beta)
@@ -124,7 +104,7 @@ PIC$group2 <- case_when(
   PIC$PICpercellpg <2  ~ "naked_bouyant",
   PIC$PICpercellpg >2 & PIC$PICpercellpg < 4 ~ "naked/calcified uncertain",
   PIC$PICpercellpg >4 & PIC$PICpercellpg < 10 ~ "moderately calcified",
-  PIC$PICpercellpg >10 ~ "strongly calcified", 
+  PIC$PICpercellpg >10 ~ "heavily calcified", 
   TRUE ~ as.character(PIC$PICpercellpg)
 )
 
@@ -132,9 +112,9 @@ PIC$group2 <- case_when(
 resize.win(15,12)
 
 PIC$group2 <- factor (PIC$group2,levels= c("naked_bouyant", "naked/calcified uncertain",
-                                           "moderately calcified", "strongly calcified"),
+                                           "moderately calcified", "heavily calcified"),
                       labels = c("naked", "naked/calcified uncertain",
-                                 "moderately calcified", "strongly calcified"))
+                                 "moderately calcified", "heavily calcified"))
 
 
 ggplot(data=PIC, aes(x=PICpercellpg, y=SinkVel, color=group2)) + 
@@ -250,7 +230,7 @@ PIC$perlith <- PIC$PICpercell/20 #in g, assuming 20 liths attached
 PIC$perlithpg <- PIC$perlith*1e12 #in pg
 PIC$Denlith <- (PIC$perlith/lithvol) + Den_OcM #in g/cm3, with organic matter attached
 PIC$Denlith_noOCM <- (PIC$perlith/lithvol) #in g/cm3, with organic matter attached
-rad_lith <- 2E-6 #in m radius
+rad_lith <- 1.5E-6 #in m radius
 
 PIC$SinkVel_lith <- ((2*((rad_lith*100)^2)*(981)*(PIC$Denlith-Den_CH2O))/(9*(mu*10)))*864 #meter per day
 PIC$beta_s_lith <- pi*(((rad_lith+Rehv)*100)^2)*(abs((PIC$SinkVel_lith-Ehv_SinkVel)/864)) #in encounters cm3/s
@@ -295,6 +275,7 @@ summary_DS <- ddply(PIC, .(Strain), summarize,  PICpercellpg=mean(PICpercellpg),
 summary_DS_bygroup <- ddply(PIC, .(group2), summarize,  PICpercellpg=mean(PICpercellpg), perlithpg = mean(perlithpg), 
                             Den_celltotal = mean (Den_celltotal),
                             SinkVel=mean(SinkVel),beta_d=mean(beta_d), E_DS_V= mean(E_DS_V), E_DS_HV=mean(E_DS_HV), 
+                            Denlith = mean (Denlith),
                             SinkVel_lith=mean (SinkVel_lith), beta_d_lith=mean (beta_d_lith), 
                             Elith_DS_HV=mean (Elith_DS_HV), Elith_DS_V=mean (Elith_DS_V))
 
@@ -305,6 +286,7 @@ setwd("D:/R program")
 require(openxlsx)
 write.xlsx(summary_DS, file = "Postdoc-R/Exported Tables/summary_DS.xlsx")
 write.xlsx(summary_DS_bygroup, file = "Postdoc-R/Exported Tables/summary_DS_bygroup.xlsx")
+write.xlsx(PIC, file = "Postdoc-R/Exported Tables/PIC_DS.xlsx")
 
 
 ## ------------------------------------------------------------------------
@@ -388,14 +370,14 @@ PIC_newdata$group2 <- case_when(
   PIC_newdata$PICpercellpg <2  ~ "naked_bouyant",
   PIC_newdata$PICpercellpg >2 & PIC_newdata$PICpercellpg < 4 ~ "naked/calcified uncertain",
   PIC_newdata$PICpercellpg >4 & PIC_newdata$PICpercellpg < 10 ~ "moderately calcified",
-  PIC_newdata$PICpercellpg >10 ~ "strongly calcified", 
+  PIC_newdata$PICpercellpg >10 ~ "heavily calcified", 
   TRUE ~ as.character(PIC_newdata$PICpercellpg)
 )
 
 PIC_newdata$group2 <- factor (PIC_newdata$group2,levels= c("naked_bouyant", "naked/calcified uncertain",
-                                                           "moderately calcified", "strongly calcified"),
+                                                           "moderately calcified", "heavily calcified"),
                               labels = c("naked", "naked/calcified uncertain",
-                                         "moderately calcified", "strongly calcified"))
+                                         "moderately calcified", "heavily calcified"))
 
 ggplotly(ggplot(data=PIC_newdata, aes(x=group2, y=PICpercellpg)) + geom_boxplot()+geom_point(size=2)
          +theme_Publication())
@@ -670,14 +652,12 @@ allbetas.melt <- melt (allbetas, id.vars = c("group2", "group", "disrate"), valu
 
 allbetas.melt$E_V <- allbetas.melt$beta_d*virnum
 allbetas.melt$E_HV <- allbetas.melt$beta_d*virnum*hostnum
-allbetas.melt$E_lith <- allbetas.melt$beta_d*lithnum
 
 allbetas.melt.lith <- melt (allbetas.lith, id.vars = c("group2", "group1", "group", "disrate"), 
                             value.name = "beta_d", variable.name = "betakernel")
 
 allbetas.melt.lith$E_V <- allbetas.melt.lith$beta_d*virnum
 allbetas.melt.lith$E_HV <- allbetas.melt.lith$beta_d*virnum*hostnum
-allbetas.melt$E_lith <- allbetas.melt$beta_d*hostnum
 
 ggplot(allbetas.melt, aes(disrate, y = E_V, color=group2)) + 
   geom_line(size=1)+
@@ -773,9 +753,64 @@ ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")),
   theme(legend.title = element_blank(), legend.position = "right", legend.key.width=unit(3,"line"))+
   guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1,byrow=TRUE))
 
+##for kay
+resize.win(9,6)
+ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")), 
+        aes(x=disrate,y = E_V, color=group2)) + 
+  geom_line(size=1.5, position=position_jitter(w=0.02, h=0), aes(linetype="cell"))+
+  geom_line(size=2, data = lith, aes(y= E_V, color=maingroup, linetype="lith")) +
+  scale_linetype_manual (values=c("solid", "dotted")) +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=2),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  scale_x_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  annotation_logticks()+
+  theme_Publication() +
+  theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression("viral encounters " ~day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
+  theme(legend.title = element_blank(), legend.key.width=unit(3,"line"))+
+  guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1,byrow=TRUE))
+
+##for kay log data
+allbetas.melt.dropnc$logEV <- log10 (allbetas.melt.dropnc$E_V)
+
+ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")), 
+       aes(x=disrate,y = logEV, color=group2)) + 
+  geom_line(size=1.5, position=position_jitter(w=0.02, h=0), aes(linetype="cell"))+
+  geom_line(size=1.5, data = lith, aes(y= E_V, color=maingroup, linetype="lith")) +
+  scale_linetype_manual (values=c("solid", "dotted")) +
+  scale_x_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  annotation_logticks()+
+  theme_Publication() +
+  theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression("viral encounters " ~day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
+  theme(legend.title = element_blank(), legend.key.width=unit(3,"line"))+
+  guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1,byrow=TRUE))
+
 
 
 ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")), 
+       aes(x=disrate,y = logEV, color=group2)) + 
+  geom_line(size=1.5, position=position_jitter(w=0.02, h=0), aes(linetype="cell"))+
+  geom_line(size=2, data = lith, aes(y= E_V, color=maingroup, linetype="lith")) +
+  scale_linetype_manual (values=c("solid", "dotted")) +
+  scale_x_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  annotation_logticks()+
+  theme_Publication() +
+  theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression("viral encounters " ~day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
+  theme(legend.title = element_blank(), legend.key.width=unit(3,"line"))+
+  guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=2,byrow=TRUE))
+##
+
+
+ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")), 
        aes(x=disrate,y = E_HV, color=group2)) + 
   geom_line(size=1, position=position_jitter(w=0.02, h=0))+
   geom_line(data = lith, aes(y= E_HV, color=group2)) +
@@ -792,10 +827,10 @@ ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")),
   theme(legend.title = element_blank())
 
 allbetas.melt.dropnc <- allbetas.melt [!allbetas.melt$group2 =="naked/calcified uncertain", ]
-allbetas.melt.dropnc$group2 <- factor(allbetas.melt.dropnc$group2, levels = c("naked", "moderately calcified", "moderately calcified-lith", "strongly calcified", "strongly calcified-lith"))
+allbetas.melt.dropnc$group3 <- factor(allbetas.melt.dropnc$group2, levels = c("naked", "moderately calcified", "moderately calcified-lith", "heavily calcified", "heavily calcified-lith"))
 
 allbetas.melt.dropnc <- allbetas.melt.dropnc%>%
-  arrange(factor(group2, c("naked", "moderately calcified", "moderately calcified-lith", "strongly calcified", "strongly calcified-lith")))
+  arrange(factor(group2, c("naked", "moderately calcified", "moderately calcified-lith", "heavily calcified", "heavily calcified-lith")))
 
 ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")), 
        aes(x=disrate,y = E_V, color=group2)) + 

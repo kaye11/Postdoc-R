@@ -1,16 +1,16 @@
 
 library(readxl)
-ninth <- read_excel("D:/Postdoc/Experiments/190430 Infection Ninth/summary.xlsx")
-View(ninth)
+tenth <- read_excel("D:/Postdoc/Experiments/190624 Infection Tenth/summary.xlsx")
+View(tenth)
 
 require(ggplot2)
 require(Rmisc)
 require(data.table)
 
-ninth$treatment <- as.factor (ninth$treatment)
-ninth$timef <- as.factor(ninth$time)
-ninth$dead <- ninth$countperml*ninth$sytox
-ninth$sytox <- ninth$sytox*100
+tenth$treatment <- as.factor (tenth$treatment)
+tenth$timef <- as.factor(tenth$time)
+tenth$dead <- tenth$countperml*tenth$sytox
+tenth$sytox <- tenth$sytox*100
 
 
 require (plotly)
@@ -21,45 +21,45 @@ require(dplyr)
 resize.win (12,9)
 
 #divide cellcount measurements by 10^6
-ninth$countpermldiv <- ninth$countperml/10^6
+tenth$countpermldiv <- tenth$countperml/10^6
 
 #divide dead cells by 10^3
-ninth$deadpermldiv <- ninth$dead/10^3
+tenth$deadpermldiv <- tenth$dead/10^3
 
-ninth.long <- melt (data=ninth, id.vars=c("treatment", "time", "timef", "rep"), variable.name="parameter")
+tenth.long <- melt (data=tenth, id.vars=c("treatment", "time", "timef", "rep"), variable.name="parameter")
 
-ninth.long$group <- case_when(
-  ninth.long$treatment =="sc"  ~ "still control",
-  ninth.long$treatment =="si" ~ "still infected",
-  ninth.long$treatment =="tc"  ~ "turbulent control",
-  ninth.long$treatment =="ti" ~ "turbulent infected",
-  TRUE ~ as.character(ninth.long$treatment)
+tenth.long$group <- case_when(
+  tenth.long$treatment =="sc"  ~ "still control",
+  tenth.long$treatment =="si" ~ "still infected",
+  tenth.long$treatment =="tc"  ~ "turbulent control",
+  tenth.long$treatment =="ti" ~ "turbulent infected",
+  TRUE ~ as.character(tenth.long$treatment)
 )
 
 
 require(tidyr)
 
-ninth.long<- separate(ninth.long, group, into = paste("group", 1:2, sep = ""))
-ninth.long$maingroup <- as.factor(paste(ninth.long$group1, ninth.long$group2, sep="-" ))
+tenth.long<- separate(tenth.long, group, into = paste("group", 1:2, sep = ""))
+tenth.long$maingroup <- as.factor(paste(tenth.long$group1, tenth.long$group2, sep="-" ))
 
-ninth.long$maingroup <- factor(ninth.long$maingroup,
-                               levels = c("still-control", "still-infected", 
-                                          "turbulent-control", "turbulent-infected"),
-                               labels = c("still-control", "still-infected", 
-                                          "turbulent-control", "turbulent-infected"))
+tenth.long$maingroup <- factor(tenth.long$maingroup,
+                                 levels = c("still-control", "still-infected", 
+                                            "turbulent-control", "turbulent-infected"),
+                                 labels = c("still-control", "still-infected", 
+                                            "turbulent-control", "turbulent-infected"))
 
-ninth.long$group1 <- as.factor(ninth.long$group1)
-ninth.long$group2 <- as.factor(ninth.long$group2)
+tenth.long$group1 <- as.factor(tenth.long$group1)
+tenth.long$group2 <- as.factor(tenth.long$group2)
 
 #use all data
-sum.all <- summarySE(ninth.long, measurevar = "value", groupvars = c("treatment", "timef", "time", "parameter"),
+sum.all <- summarySE(tenth.long, measurevar = "value", groupvars = c("treatment", "timef", "time", "parameter"),
                      na.rm=TRUE)
 
 scientific_10 <- scientific_10 <- function(x) {
   ifelse(x==0, "0", parse(text=gsub("[+]", "", gsub("e", " %*% 10^", scales::scientific_format()(x)))))
 }
 
-ggplotly(ggplot(data=ninth.long, aes(x=time, y=value, colour=treatment)) +geom_boxplot() + 
+ggplotly(ggplot(data=tenth.long, aes(x=time, y=value, colour=treatment)) +geom_boxplot() + 
            facet_grid(parameter~treatment, scales="free")+ geom_point()+ theme_bw())
 
 ggplot(data=sum.all, aes(x=time, y=value, colour=treatment)) +
@@ -67,7 +67,7 @@ ggplot(data=sum.all, aes(x=time, y=value, colour=treatment)) +
   geom_errorbar(aes(ymin=value-se, ymax=value+se), position = position_dodge(width=0.5)) + theme_bw()+
   geom_smooth(method="loess") + facet_grid(parameter~treatment, scales="free")
 
-sum.all.group <- summarySE(ninth.long, measurevar = "value", 
+sum.all.group <- summarySE(tenth.long, measurevar = "value", 
                            groupvars = c("maingroup", "group1", "group2", "time", "parameter"), na.rm = TRUE)
 
 source("theme_Publication.R")
@@ -82,7 +82,7 @@ allplots <- ggplot(data=sum.all.group, aes(x=time, y=value, colour=group2)) +geo
 allplots
 
 #this arrangement you used for the poster (i.e. combine.all script from Dec 2018)
-ggplot(data=ninth.long %>% 
+ggplot(data=tenth.long %>% 
          filter(parameter %in% c("countpermldiv", "sytox", "fv/fm")) , 
        aes(x=time, y=value, colour=maingroup, shape=maingroup, linetype=maingroup)) +
   geom_point(size=5) + 
@@ -100,7 +100,7 @@ ggplot(data=ninth.long %>%
 sum.all.group$parameter2 <- factor(sum.all.group$parameter, levels=c("countperml", "sytox"), 
                                    labels =c ("Cell count", "%Sytox stained"))
 
-cellcount <- ggplot(data=ninth.long %>% 
+cellcount <- ggplot(data=tenth.long %>% 
                       filter(parameter %in% c("countpermldiv")), aes(x=time, y=value, linetype=maingroup)) +
   geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
   geom_smooth(method = 'loess', aes(colour=maingroup, fill=maingroup), alpha=0.2, size=1.5) + 
@@ -115,7 +115,7 @@ cellcount <- ggplot(data=ninth.long %>%
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none",
         axis.title.y = element_text(vjust=5), plot.margin= margin(5,2.5,8,10))
 
-fvfm <- ggplot(data=ninth.long %>% 
+fvfm <- ggplot(data=tenth.long %>% 
                  filter(parameter %in% c("fv/fm")), aes(x=time, y=value, linetype=maingroup)) +
   geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
   geom_smooth(method = 'loess', aes(colour=maingroup, fill=maingroup), alpha=0.2, size=1.5) + 
@@ -130,7 +130,7 @@ fvfm <- ggplot(data=ninth.long %>%
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none",
         axis.title.y = element_text(vjust=5), plot.margin= margin(-2,2.5,8,10))
 
-sytox <- ggplot(data=ninth.long %>% 
+sytox <- ggplot(data=tenth.long %>% 
                   filter(parameter %in% c("sytox")), aes(x=time, y=value, linetype=maingroup)) +
   geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
   geom_smooth(method = 'loess', aes(colour=maingroup, fill=maingroup), alpha=0.2, size=1) + 
@@ -145,8 +145,8 @@ sytox <- ggplot(data=ninth.long %>%
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none", 
         plot.margin= margin(-2,2.5,8,10))
 
-dead <- ggplot(data=ninth.long %>% 
-                 filter(parameter %in% c("deadpermldiv")), aes(x=time, y=value, linetype=maingroup)) +
+dead <- ggplot(data=tenth.long %>% 
+                  filter(parameter %in% c("deadpermldiv")), aes(x=time, y=value, linetype=maingroup)) +
   geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
   geom_smooth(method = 'loess', aes(colour=maingroup, fill=maingroup), alpha=0.2, size=1) + 
   labs (y= expression("dead cells"~ "mL"^~-1~ scriptstyle(x)~"10"^~3), x= "hours post-infection") +
@@ -169,11 +169,11 @@ grid.draw(rbind(ggplotGrob(cellcount), ggplotGrob(fvfm), ggplotGrob(sytox), ggpl
 #export data
 setwd("D:/R program")
 require(openxlsx)
-write.xlsx(sum.all.group, file = "Postdoc-R/Exported Tables/ninthExp_summary_sytox.xlsx")
-write.xlsx(ninth.long, file = "Postdoc-R/Exported Tables/ninthExp_sytox.xlsx")
+write.xlsx(sum.all.group, file = "Postdoc-R/Exported Tables/tenthExp_summary_sytox.xlsx")
+write.xlsx(tenth.long, file = "Postdoc-R/Exported Tables/tenthExp_sytox.xlsx")
 
 #standardization
-sytoxtab <- subset(ninth.long, ninth.long$parameter=="sytox")
+sytoxtab <- subset(tenth.long, tenth.long$parameter=="sytox")
 
 sytoxtab$sytoxS=NA
 k=split(sytoxtab, sytoxtab$maingroup)
@@ -190,7 +190,7 @@ sytoxnew <- t1 #DATA IS NOW CALLED COUNTBASE
 
 sytoxnew.long <- melt (data=sytoxnew, id.vars=c("treatment", "time", "timef", "rep", "group1", "group2", "maingroup"), variable.name="parameter")
 
-ninth.long.withsytoxbase <- rbind (ninth.long, (sytoxnew.long %>% filter (parameter=="sytoxBase")))
+tenth.long.withsytoxbase <- rbind (tenth.long, (sytoxnew.long %>% filter (parameter=="sytoxBase")))
 
 ggplot(data=sytoxnew, aes(x=time, y=sytoxBase, linetype=maingroup)) +
   geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
@@ -205,4 +205,4 @@ ggplot(data=sytoxnew, aes(x=time, y=sytoxBase, linetype=maingroup)) +
   #facet_grid(~group1) +
   theme(strip.text = element_blank(), legend.title=element_blank())
 
-write.xlsx(ninth.long.withsytoxbase, file = "Postdoc-R/Exported Tables/ninthExp_sytox_standard.xlsx")
+write.xlsx(tenth.long.withsytoxbase, file = "Postdoc-R/Exported Tables/tenthExp_sytox_standard.xlsx")

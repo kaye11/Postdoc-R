@@ -5,10 +5,13 @@ View(eight)
 
 require(ggplot2)
 require(Rmisc)
+require(data.table)
 
 eight$treatment <- as.factor (eight$treatment)
 eight$timef <- as.factor(eight$time)
+eight$dead <- eight$countperml*eight$sytox
 eight$sytox <- eight$sytox*100
+
 
 require (plotly)
 source("theme_Publication.R")
@@ -19,6 +22,9 @@ resize.win (12,9)
 
 #divide cellcount measurements by 10^6
 eight$countpermldiv <- eight$countperml/10^6
+
+#divide dead cells by 10^3
+eight$deadpermldiv <- eight$dead/10^3
 
 eight.long <- melt (data=eight, id.vars=c("treatment", "time", "timef", "rep"), variable.name="parameter")
 
@@ -37,10 +43,10 @@ eight.long<- separate(eight.long, group, into = paste("group", 1:2, sep = ""))
 eight.long$maingroup <- as.factor(paste(eight.long$group1, eight.long$group2, sep="-" ))
 
 eight.long$maingroup <- factor(eight.long$maingroup,
-                                 levels = c("still-control", "still-infected", 
-                                            "turbulent-control", "turbulent-infected"),
-                                 labels = c("still-control", "still-infected", 
-                                            "turbulent-control", "turbulent-infected"))
+                               levels = c("still-control", "still-infected", 
+                                          "turbulent-control", "turbulent-infected"),
+                               labels = c("still-control", "still-infected", 
+                                          "turbulent-control", "turbulent-infected"))
 
 eight.long$group1 <- as.factor(eight.long$group1)
 eight.long$group2 <- as.factor(eight.long$group2)
@@ -64,6 +70,7 @@ ggplot(data=sum.all, aes(x=time, y=value, colour=treatment)) +
 sum.all.group <- summarySE(eight.long, measurevar = "value", 
                            groupvars = c("maingroup", "group1", "group2", "time", "parameter"), na.rm = TRUE)
 
+source("theme_Publication.R")
 #ALWAYS REMEMBER FOR GEOM_SMOOTH TO HAVE X sytox AS NUMERIC!
 allplots <- ggplot(data=sum.all.group, aes(x=time, y=value, colour=group2)) +geom_point(size=5) + 
   geom_errorbar(aes(ymin=value-se, ymax=value+se, width=2)) + 
@@ -91,13 +98,13 @@ ggplot(data=eight.long %>%
 #it is not possible to make different y axis labels for facet_grid, so just make multiple graphs then arrange with grob
 
 sum.all.group$parameter2 <- factor(sum.all.group$parameter, levels=c("countperml", "sytox"), 
-                                   labels =c ("Cell count", "%Sytox parametered"))
+                                   labels =c ("Cell count", "%Sytox stained"))
 
 cellcount <- ggplot(data=eight.long %>% 
                       filter(parameter %in% c("countpermldiv")), aes(x=time, y=value, linetype=maingroup)) +
   geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
   geom_smooth(method = 'loess', aes(colour=maingroup, fill=maingroup), alpha=0.2, size=1.5) + 
-  labs (y= expression("E.huxleyi"~ "mL"^~-1~ scriptstyle(x)~"10"^~6)) +
+  labs (y= expression("E.huxleyi "~ "mL"^~-1~ scriptstyle(x)~"10"^~6)) +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96)) +
   scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
   scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
@@ -105,7 +112,8 @@ cellcount <- ggplot(data=eight.long %>%
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
   theme_Publication() +
   #facet_grid(~group1) +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none")
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none",
+        axis.title.y = element_text(vjust=5), plot.margin= margin(5,2.5,8,10))
 
 fvfm <- ggplot(data=eight.long %>% 
                  filter(parameter %in% c("fv/fm")), aes(x=time, y=value, linetype=maingroup)) +
@@ -119,7 +127,8 @@ fvfm <- ggplot(data=eight.long %>%
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
   theme_Publication() +
   #facet_grid(~group1) +
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none")
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none",
+        axis.title.y = element_text(vjust=5), plot.margin= margin(-2,2.5,8,10))
 
 sytox <- ggplot(data=eight.long %>% 
                   filter(parameter %in% c("sytox")), aes(x=time, y=value, linetype=maingroup)) +
@@ -133,51 +142,67 @@ sytox <- ggplot(data=eight.long %>%
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
   theme_Publication() +
   #facet_grid(~group1) +
-  theme(strip.text = element_blank(), legend.title=element_blank())
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none", 
+        plot.margin= margin(-2,2.5,8,10))
 
-resize.win(16,25)
-grid.newpage()
-grid.draw(rbind(ggplotGrob(cellcount), ggplotGrob(fvfm), ggplotGrob(sytox), size = "last"))
-
-
-
-
-
-##both conditions in one graph
-
-cellcount.both <-ggplot(data=sum.all.group %>% 
-                          filter(parameter %in% c("countpermldiv")), 
-                        aes(x=time, y=value, colour=maingroup, shape=maingroup, linetype=maingroup)) +
-  geom_point(size=5) + 
-  geom_errorbar(aes(ymin=value-se, ymax=value+se, width=5)) + 
-  geom_smooth(method="loess") + 
-  labs (y= expression("cells per mL"~ scriptstyle(x)~"10"^~6)) +
-  scale_x_continuous(breaks=c(0, 24, 48, 72, 96)) +
-  scale_color_manual(values = rep(c("#e41a1c", "#e41a1c", "#377eb8", "#377eb8", "#4daf4a", "#4daf4a"), times = 2)) +
-  scale_linetype_manual(values = rep(c("solid", "longdash"), times = 6)) + 
-  scale_shape_manual(values = rep(16:17, 3)) + 
-  theme_Publication() + 
-  theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none")
-
-sytox.both  <- ggplot(data=sum.all.group %>% 
-                        filter(parameter %in% c("sytox")), 
-                      aes(x=time, y=value, colour=maingroup, shape=maingroup, linetype=maingroup)) +
-  geom_point(size=5) + 
-  geom_errorbar(aes(ymin=value-se, ymax=value+se, width=5)) + 
-  geom_smooth(method="loess") + 
-  labs(y="% sytox parametered", x= "hours post-infection") +
+dead <- ggplot(data=eight.long %>% 
+                 filter(parameter %in% c("deadpermldiv")), aes(x=time, y=value, linetype=maingroup)) +
+  geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
+  geom_smooth(method = 'loess', aes(colour=maingroup, fill=maingroup), alpha=0.2, size=1) + 
+  labs (y= expression("dead cells"~ "mL"^~-1~ scriptstyle(x)~"10"^~3), x= "hours post-infection") +
   scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) +
-  scale_color_manual(values = rep(c("#e41a1c", "#e41a1c", "#377eb8", "#377eb8", "#4daf4a", "#4daf4a"), times = 2)) +
-  scale_linetype_manual(values = rep(c("solid", "longdash"), times = 6)) + 
-  scale_shape_manual(values = rep(16:17, 3)) + 
+  scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
+  scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
   theme_Publication() +
-  theme(legend.key.width=unit(3,"line"), legend.title = element_blank())
+  #facet_grid(~group1) +
+  theme(strip.text = element_blank(), legend.title=element_blank(), plot.margin= margin(-2,2.5,0,10)) +
+  guides(linetype=guide_legend(ncol=2), colour=guide_legend(ncol=2), shape=guide_legend(ncol=2), 
+         fill=guide_legend(ncol=2))
 
+resize.win(18,30)
+grid.newpage()
+grid.draw(rbind(ggplotGrob(cellcount), ggplotGrob(fvfm), ggplotGrob(sytox), ggplotGrob(dead), size = "last"))
 
-grid.draw(rbind(ggplotGrob(cellcount.both), ggplotGrob(sytox.both), size = "last"))
 
 #export data
 setwd("D:/R program")
 require(openxlsx)
 write.xlsx(sum.all.group, file = "Postdoc-R/Exported Tables/eightExp_summary_sytox.xlsx")
 write.xlsx(eight.long, file = "Postdoc-R/Exported Tables/eightExp_sytox.xlsx")
+
+#standardization
+sytoxtab <- subset(eight.long, eight.long$parameter=="sytox")
+
+sytoxtab$sytoxS=NA
+k=split(sytoxtab, sytoxtab$maingroup)
+sytoxtabstd <- lapply(k, function (x) scale(x[,c("value")], center=T, scale=T))
+sytoxtab$sytoxS=unsplit(sytoxtabstd, sytoxtab$maingroup)
+
+#baselining to 0 at time point 0
+NT<-data.table(sytoxtab, key=c("rep"))
+
+t1=NT[,list(treatment=treatment, time=time, timef=timef, sytox=value, group1=group1, group2=group2, 
+            maingroup=maingroup, sytoxS=sytoxS, sytoxBase=(sytoxS-sytoxS[1])), by=c("rep")]
+
+sytoxnew <- t1 #DATA IS NOW CALLED COUNTBASE
+
+sytoxnew.long <- melt (data=sytoxnew, id.vars=c("treatment", "time", "timef", "rep", "group1", "group2", "maingroup"), variable.name="parameter")
+
+eight.long.withsytoxbase <- rbind (eight.long, (sytoxnew.long %>% filter (parameter=="sytoxBase")))
+
+ggplot(data=sytoxnew, aes(x=time, y=sytoxBase, linetype=maingroup)) +
+  geom_point(size=7, aes(colour=maingroup, shape=maingroup)) + 
+  geom_smooth(method = 'loess', aes(colour=maingroup, fill=maingroup), alpha=0.2, size=1) + 
+  labs(y="standard sytox", x= "hours post-infection") +
+  scale_x_continuous(breaks=c(0, 24, 48, 72, 96, 120)) + 
+  scale_shape_manual (values= c(0, 15, 1, 16, 2, 17)) +
+  scale_color_manual(values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_fill_manual (values = c("#999999", "#999999", "#E69F00", "#E69F00", "#56B4E9", "#56B4E9")) +
+  scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) +
+  theme_Publication() +
+  #facet_grid(~group1) +
+  theme(strip.text = element_blank(), legend.title=element_blank())
+
+write.xlsx(eight.long.withsytoxbase, file = "Postdoc-R/Exported Tables/eightExp_sytox_standard.xlsx")
