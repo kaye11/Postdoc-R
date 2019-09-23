@@ -754,7 +754,7 @@ ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")),
   guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1,byrow=TRUE))
 
 ##for kay
-resize.win(9,6)
+resize.win(6,6)
 ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")), 
         aes(x=disrate,y = E_V, color=group2)) + 
   geom_line(size=1.5, position=position_jitter(w=0.02, h=0), aes(linetype="cell"))+
@@ -769,9 +769,9 @@ ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")),
   annotation_logticks()+
   theme_Publication() +
   theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
-  labs(y = expression("viral encounters " ~day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
+  labs(y = expression("viral encounters " ~day^-1~cell~or~lith^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
   theme(legend.title = element_blank(), legend.key.width=unit(3,"line"))+
-  guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1,byrow=TRUE))
+  guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1))
 
 ##for kay log data
 allbetas.melt.dropnc$logEV <- log10 (allbetas.melt.dropnc$E_V)

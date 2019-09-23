@@ -34,26 +34,28 @@ bind_data <- rbind(seventh, eight, ninth, tenth)
 still <- bind_data %>% filter (group1=="still") %>% mutate (rpm="0") 
 turb <- bind_data %>% filter (group1=="turbulent")
 
-all <- rbind(still, turb)
+comb <- rbind(still, turb)
 
-all$supergroup <- as.factor (paste(all$supergroup2, all$rpm, sep="-"))
+comb$day <- comb$time/24
+comb$dayf <- as.factor(comb$time/24)
 
+comb$supergroup <- as.factor (paste(comb$group1, comb$group2, comb$rpm, sep="-"))
 
-sum.all.group <- summarySE(all, measurevar = "value", 
-                           groupvars = c("supergroup", "supergroup2", "group1", "group2", 
-                                         "time", "parameter", "rpm"))
+comb$supergroup <- factor(comb$supergroup, levels = c("still-control-0",  "still-infected-0","turbulent-control-350" , "turbulent-infected-350", "turbulent-control-600", "turbulent-infected-600"))
 
-sum.all.group2 <- summarySE(all, measurevar = "value", 
-                            groupvars = c("supergroup2", "group1", "group2", "time", "parameter", "exp"))
+comb$supergroup2 <- factor(comb$supergroup, levels = c("still-control-0",  "still-infected-0","turbulent-control-350" , "turbulent-infected-350", "turbulent-control-600", "turbulent-infected-600"), labels= c("still-control",  "still-infected","mid-control" , "mid-infected", "stormy-control", "stormy-infected"))
 
-all$supergroup <- factor(all$supergroup, levels = c("still-control-0",  "still-infected-0","turbulent-control-350" , "turbulent-infected-350", "turbulent-control-600", "turbulent-infected-600"))
+comb$exp <- factor(comb$exp, levels = c("7th", "8th", "9th","10th" ))
 
-all$supergroup2 <- factor(all$supergroup, levels = c("still-control-0",  "still-infected-0","turbulent-control-350" , "turbulent-infected-350", "turbulent-control-600", "turbulent-infected-600"), labels= c("still-control",  "still-infected","mid-control" , "mid-infected", "stormy-control", "stormy-infected"))
+comb2 <- select (comb,-c(time, timef))
 
-all$exp <- factor(all$exp, levels = c("7th", "8th", "9th","10th" ))
+comb2$virus <- "EhV 207"
+
+require(openxlsx)
+write.xlsx(comb2, file = "Postdoc-R/Exported Tables/EhV207_7to10.xlsx")
 
 ##what I wanted
-ggplot(data=all %>% 
+ggplot(data=comb %>% 
          filter(parameter %in% c("sytox")), aes(x=time, y=value, linetype=supergroup2)) +
   geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
@@ -65,17 +67,17 @@ ggplot(data=all %>%
   scale_linetype_manual(values = c("solid", "longdash", "solid", "longdash", "solid", "longdash")) + 
   theme(legend.key.width=unit(3,"line"), legend.position = "bottom") + theme_Publication()
 
-all.drop120 <- all[! all$time=="120",  ]
+comb.drop120 <- comb[! comb$time=="120",  ]
 
 resize.win(15,12)
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter %in% c("countpermldiv", "sytox", "deadpermldiv", "fv/fm")), aes(x=timef, y=value)) +
   geom_boxplot (aes(colour=supergroup2)) +
   geom_point(size=2.5, aes(colour=supergroup2)) +
   theme_Publication() + facet_grid (parameter~supergroup2, scales="free") + labs (x= "hrs post-infection") 
 
 
-cellcount <- ggplot(data=all.drop120 %>% 
+cellcount <- ggplot(data=comb.drop120 %>% 
                       filter(parameter %in% c("countpermldiv")), aes(x=time, y=value, linetype=supergroup2)) +
   geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
@@ -90,7 +92,7 @@ cellcount <- ggplot(data=all.drop120 %>%
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none",
         axis.title.y = element_text(vjust=5), plot.margin= margin(5,2.5,8,10))
 
-fvfm <- ggplot(data=all.drop120 %>% 
+fvfm <- ggplot(data=comb.drop120 %>% 
                  filter(parameter %in% c("fv/fm")), aes(x=time, y=value, linetype=supergroup2)) +
   geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1.5) + 
@@ -105,7 +107,7 @@ fvfm <- ggplot(data=all.drop120 %>%
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none",
         axis.title.y = element_text(vjust=5), plot.margin= margin(-2,2.5,8,10))
 
-sytox <- ggplot(data=all.drop120 %>% 
+sytox <- ggplot(data=comb.drop120 %>% 
                   filter(parameter %in% c("sytox")), aes(x=time, y=value, linetype=supergroup2)) +
   geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1) + 
@@ -120,7 +122,7 @@ sytox <- ggplot(data=all.drop120 %>%
   theme(axis.title.x = element_blank(), axis.text.x = element_blank(), legend.position ="none", 
         plot.margin= margin(-2,2.5,8,10))
 
-dead <- ggplot(data=all.drop120 %>% 
+dead <- ggplot(data=comb.drop120 %>% 
                  filter(parameter %in% c("deadpermldiv")), aes(x=time, y=value, linetype=supergroup2)) +
   geom_point(size=7, aes(colour=supergroup2, shape=supergroup2)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup2, fill=supergroup2), alpha=0.2, size=1) + 
@@ -136,18 +138,19 @@ dead <- ggplot(data=all.drop120 %>%
   guides(linetype=guide_legend(ncol=3), colour=guide_legend(ncol=3), shape=guide_legend(ncol=3), 
          fill=guide_legend(ncol=3))
 
-resize.win(18,30)
+resize.win(30,18)
 grid.newpage()
 grid.draw(rbind(ggplotGrob(cellcount), ggplotGrob(fvfm), ggplotGrob(sytox), ggplotGrob(dead), size = "last"))
+grid.arrange(cellcount, sytox, fvfm, dead, nrow = 1)
 
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter=="countperml" & supergroup2=="still-infected"), aes(x=time, y=value, linetype=exp)) +
   geom_point(size=7, aes(colour=exp, shape=exp)) + 
   geom_smooth(method = 'loess', aes(colour=exp, fill=exp), alpha=0.2, size=1.5)
 
 #cellcount
 resize.win(6,9)
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter %in% c("countpermldiv")), aes(x=time, y=value, linetype=supergroup)) +
   geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
@@ -162,7 +165,7 @@ ggplot(data=all.drop120 %>%
   theme(legend.position ="none")
 
 #cellcount infected
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter=="countpermldiv" &  group2=="infected"), aes(x=time, y=value, linetype=supergroup)) +
   geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
@@ -176,7 +179,7 @@ ggplot(data=all.drop120 %>%
   #facet_grid(~supergroup1) +
   theme(legend.position ="none")
 
-deadtab <- all.drop120 %>% filter(parameter=="dead")  %>% mutate (deadln = log10 (value))
+deadtab <- comb.drop120 %>% filter(parameter=="dead")  %>% mutate (deadln = log10 (value))
 
 ggplot(data=deadtab %>%
          filter (rpm=="600" & group2=="infected" ), 
@@ -190,7 +193,7 @@ ggplot(data=deadtab %>%
   theme(legend.title=element_blank()) 
 
 #sytox
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter %in% c("sytox")), aes(x=time, y=value, linetype=supergroup)) +
   geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
@@ -205,7 +208,7 @@ ggplot(data=all.drop120 %>%
   theme(legend.position ="none")
 
 #sytox infected
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter=="sytox" & group2=="infected"), aes(x=time, y=value, linetype=supergroup)) +
   geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
@@ -222,7 +225,7 @@ ggplot(data=all.drop120 %>%
 
 
 #fv/fm
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter %in% c("fv/fm")), aes(x=time, y=value, linetype=supergroup)) +
   geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
@@ -237,7 +240,7 @@ ggplot(data=all.drop120 %>%
   theme(legend.position ="none")
 
 #fv/fm infected
-ggplot(data=all.drop120 %>% 
+ggplot(data=comb.drop120 %>% 
          filter(parameter=="fv/fm" & group2=="infected"), aes(x=time, y=value, linetype=supergroup)) +
   geom_point(size=7, aes(colour=supergroup, shape=supergroup)) + 
   geom_smooth(method = 'loess', aes(colour=supergroup, fill=supergroup), alpha=0.2, size=1.5) + 
