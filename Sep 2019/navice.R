@@ -1,6 +1,5 @@
 library(readr)
-navice <- read_delim("D:/Postdoc/theoretical/NAVICE Ehux Sytox VLP wrangled.csv", 
-                     "\t", escape_double = FALSE, trim_ws = TRUE)
+navice <- read_csv("D:/Postdoc/theoretical/NA-VICE/NAVICE Ehux Sytox VLP wrangled.csv")
 View(navice)
 
 require(dplyr)

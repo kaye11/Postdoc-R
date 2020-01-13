@@ -7,7 +7,7 @@ mu= 1.126*(10)^-3 #kg/m s dynamic viscosity in 18C
 v= 1.099*(10)^-6 #m2/s kinemodataic viscosity in 18C
 Reh_calc= 2.3E-6 #in m radius Ehux
 Reh_naked= 1.8E-6 #in m radius Ehux
-Reh_lith = 1.5E-6
+Reh_lith = 1.25E-6
 Rehv= 90*(10)^-9 #in m radius virus
 Temp = 18+273.15 #temp in kelvin, here assuming 18C
 Den_OcM = 1.05 #g/cm3 density organic cell modatater
@@ -34,13 +34,13 @@ modata <- expand.grid (cell1=as.factor (c("Nc", "Li")), cell2=as.factor (c("Nc",
 
 modata <- modata %>%
   mutate(rad1 = case_when(cell1 == "Nc" ~ 1.8E-6,
-                         cell1 == "Li" ~ 1.5E-6)) %>%
+                         cell1 == "Li" ~ 1.25E-6)) %>%
   mutate(rad2 = case_when(cell2 == "Nc" ~ 1.8E-6,
-                          cell2 == "Li" ~ 1.5E-6)) %>%
+                          cell2 == "Li" ~ 1.25E-6)) %>%
   mutate(den1 = case_when(cell1 == "Nc" ~ 1.06,
-                          cell1 == "Li" ~ 1.25))%>%
+                          cell1 == "Li" ~ 1.24))%>%
   mutate(den2 = case_when(cell2 == "Nc" ~ 1.06,
-                          cell2 == "Li" ~ 1.25))
+                          cell2 == "Li" ~ 1.24))
 
 # ------------------------------------------------------------------------
 ##differential settling

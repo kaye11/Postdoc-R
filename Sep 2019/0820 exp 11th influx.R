@@ -112,3 +112,7 @@ ggplot(data=influxdata %>%
   scale_linetype_manual(values = c("longdash", "longdash", "longdash")) +
   theme_Publication() +   theme(legend.position ="bottom", legend.title = element_blank())
 
+#export data
+setwd("D:/R program")
+require(openxlsx)
+write.xlsx(influxdata, file = "Postdoc-R/Exported Tables/EleventhExp_virbac.xlsx")

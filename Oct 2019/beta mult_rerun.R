@@ -13,9 +13,11 @@ Rehv= 90*(10)^-9 #in m radius virus
 Temp = 18+273.15 #temp in kelvin, here assuming 18C
 Den_OcM = 1.05 #g/cm3 density organic cell modatater
 Den_CH2O= 1.025 #g/cm3 density seawater at 18C
-hostnum <- (10)^5 #change this as needed
-virnum <- hostnum*10
-lithnum <- hostnum*50
+host <- (10)^3
+CcNum <- 0.9*host
+NcNum <- 0.1*host
+ViNum <- (CcNum+NcNum)*10
+LiNum <- CcNum*50
 
 ## ------------------------------------------------------------------------
 #Brownian motion (modata)
@@ -33,14 +35,14 @@ modata <- modata %>%
                          group2 == "Cc" ~ 2.3E-6, 
                          group2 == "Li" ~ 1.25E-6,
                          group2 == "Vi" ~ 2E-9)) %>%
-  mutate(count1 = case_when(group1 == "Nc" ~ hostnum,
-                          group1 == "Cc" ~ hostnum, 
-                          group1 == "Li" ~ lithnum,
-                          group1 == "Vi" ~ virnum))%>%
-  mutate(count2 = case_when(group2 == "Nc" ~ hostnum,
-                            group2 == "Cc" ~ hostnum, 
-                            group2 == "Li" ~ lithnum,
-                            group2 == "Vi" ~ virnum))%>%
+  mutate(count1 = case_when(group1 == "Nc" ~ NcNum,
+                          group1 == "Cc" ~ CcNum, 
+                          group1 == "Li" ~ LiNum,
+                          group1 == "Vi" ~ ViNum))%>%
+  mutate(count2 = case_when(group2 == "Nc" ~ NcNum,
+                            group2 == "Cc" ~ CcNum, 
+                            group2 == "Li" ~ LiNum,
+                            group2 == "Vi" ~ ViNum))%>%
   mutate(den1 = case_when(group1 == "Nc" ~ 1.09,
                             group1 == "Cc" ~ 1.25, ##average of mod calc and strongly calc uses 
                             group1 == "Li" ~ 1.21,
@@ -71,6 +73,7 @@ modata$group2 <- factor(modata$group2, levels=c("Cc", "Nc", "Li", "Vi"))
 modata$SinkVel1 <- ((2*((modata$rad1*100)^2)*(981)*(modata$den1-Den_CH2O))/(9*(mu*10)))*864 #meter per day
 modata$SinkVel2 <- ((2*((modata$rad2*100)^2)*(981)*(modata$den2-Den_CH2O))/(9*(mu*10)))*864 #meter per day
 modata$beta_DS <- (pi*(((modata$rad1+modata$rad2)*100)^2)*(abs((modata$SinkVel1-modata$SinkVel2)/864)))*86400 #in encounters cm3/day
+#beta will be the same for pairings in reverse
 
 modata$E_DS <- modata$beta_DS*modata$count1
 
@@ -117,30 +120,31 @@ ggplot (data=modataext %>% filter (group1 %in% c ("Nc")) %>% filter (!(group2 %i
 
 #compute encounters
 
-modataext$E_all <- modataext$beta_all*modataext$count1
+modataext$E_all <- modataext$beta_all*modataext$count2 #doublechecked with Heidi's model already
 modataext$disratef <- as.factor (modataext$disrate)
 
 ggplot (data=modataext %>% filter (group1 %in% c ("Nc")) %>% filter (!(group2 %in% c("Nc"))), aes(x=log10(disrate),y = log10(E_all), color=group2)) + geom_line() + geom_point ()
 
-ggplot(modataext %>% filter(disrate %in% c("0.001")), aes(group1, group2)) +
-  geom_tile(aes(fill = log10(E_all)), colour = "grey50") +
-  scale_fill_viridis(option="cividis") +
+ggplot(modataext, aes(x=group2, y=group1)) +
+  geom_tile(aes(fill = log10(E_all)), colour = "grey50") + geom_text(size=2.8, color="white", aes(label=formatC(E_all, format = "e", digits = 1))) +
+  scale_fill_viridis(option="cividis") + 
   ylim(rev(levels(modata$group2))) +
   theme_Publication() +
-  theme(axis.title = element_blank(), legend.position = "right", legend.title= element_blank(), legend.direction = "vertical", legend.key.height=unit(2.5,"line"), legend.key.width = unit (1.5, "line"))
+  theme(axis.title = element_blank(), legend.position = "bottom", legend.title= element_blank(), legend.direction = "horizontal", legend.key.height=unit(1.5,"line"), legend.key.width = unit (2.5, "line")) + facet_grid(~disrate)
+
 
 #export data
 setwd("D:/R program")
 require(openxlsx)
-write.xlsx(modataext, file = "Postdoc-R/Exported Tables/encounters 10 to the 5 host.xlsx")
+write.xlsx(modataext, file = "Postdoc-R/Exported Tables/encounters 10 to the 5 host_corden.xlsx")
 
 
 ##-------------STOP HERE---------------------------------------------------------##
 #readin data
 library(readxl)
-three <- read_excel("Postdoc-R/Exported Tables/encounters 10 to the 3 host.xlsx")
-four <- read_excel("Postdoc-R/Exported Tables/encounters 10 to the 4 host.xlsx")
-five <- read_excel("Postdoc-R/Exported Tables/encounters 10 to the 5 host.xlsx")
+three <- read_excel("Postdoc-R/Exported Tables/encounters 10 to the 3 host_corden.xlsx")
+four <- read_excel("Postdoc-R/Exported Tables/encounters 10 to the 4 host_corden.xlsx")
+five <- read_excel("Postdoc-R/Exported Tables/encounters 10 to the 5 host_corden.xlsx")
 
 ##arrange factors
 three$group1 <- factor(three$group1, levels=c("Cc", "Nc", "Li", "Vi"))
@@ -165,94 +169,57 @@ five$host <- 10^5
 comb <- rbind(three, four, five)
 
 resize.win(16,8)
-ggplot(comb, aes(x=group2, y=group1)) +
+ggplot(comb %>% filter (host %in% c("1000", "1e+05")), aes(x=group2, y=group1)) +
   geom_tile(aes(fill = log10(E_all)), colour = "grey50") +
   scale_fill_viridis(option="cividis") +
   ylim(rev(levels(modata$group1))) + labs (fill="log10 encounters per day") + 
   theme_Publication() +
   theme(axis.title = element_blank(), legend.position = "bottom", legend.direction = "horizontal", legend.key.height=unit(1,"line"), legend.key.width = unit (2, "line")) +facet_grid(host~disrate)
 
-
-###--------------------------STOP HERE-------------------------------##
-##make Heidi's graph (virus density vs. disrate)
-#change as necessary
-virdis <- five %>% filter (group2=="Vi")
-
-expand.grid.df <- function(...) Reduce(function(...) merge(..., by=NULL), list(...))
-viralcount <- rep_len (c (1 %o% 10^(seq(2,7, 1))), length.out=6)
-virdis2 <- expand.grid.df(virdis, viralcount)
-
-virdis2$E_allvir <- virdis2$beta_all*virdis2$y
-
-resize.win(12,9)
-ggplot(virdis2 , aes(y=log10(y), x=disratef)) +
-  geom_tile(aes(fill = log(E_allvir)), colour = "grey50") +
+#for visualization, with texts
+ggplot(comb %>% filter (host %in% c("1000", "1e+05")) , aes(x=group2, y=group1)) +
+  geom_tile(aes(fill = log10(E_all)), colour = "grey50") +  geom_text(size=2.8, color="white", aes(label=formatC(E_all, format = "e", digits = 1))) +
   scale_fill_viridis(option="cividis") +
-  theme_Publication() + labs (fill="log10 encounters per day", x= "dissipation rate", y="log10 virus density") + 
-  theme(legend.direction = "horizontal", legend.key.height=unit(1.5,"line"), legend.key.width = unit (2.5, "line")) + facet_wrap(~group1, ncol=2)
-
-#check experimental density
-a600<- virdis2 %>% filter (group1=="Nc") %>% filter(disratef=="0.001")
-a350<- virdis2 %>% filter (group1=="Nc") %>% filter(disratef=="1e-04")
-astill<- virdis2 %>% filter (group1=="Nc") %>% filter(disratef=="1e-08")
-
-nc <- virdis2 %>% filter (group1=="Nc")
-
-ggplotly(ggplot(data=virdis2 %>% filter (group1=="Nc"), 
-       aes(x=disratef, y=E_allvir, colour=as.factor(y), shape=as.factor(y))) +
-  geom_point(size=5))
-
-resize.win (10,8)
-ggplot(data=virdis2 %>% filter (group1=="Nc"), 
-       aes(x=log10(disrate), y=log10(E_allvir), colour=as.factor(y), shape=as.factor(y))) +
-  geom_point(size=5) + labs (x= "dissipation rate", y= "log10 encounters per day") +
+  ylim(rev(levels(modata$group1))) + labs (fill="log10 encounters per day") + 
   theme_Publication() +
-  guides(shape=guide_legend(title="virus density"), color=guide_legend(title="virus density")) +
-  theme (legend.position = "right", legend.direction = "vertical")
+  theme(axis.title = element_blank(), legend.position = "bottom", legend.direction = "horizontal", legend.key.height=unit(1,"line"), legend.key.width = unit (2, "line")) +facet_grid(host~disrate)
 
-####---USELESS LOOPING BUT COULD BE OF USE SOMETIME IN THE FUTURE------######
-###LOOP
 
-# list of values to loop over
-modataext$disratef <- as.factor (modataext$disrate)
-uniq_disrate <- unique(modataext$disratef)
+#####____________________________________#####
+### for lith concentration *10
 
-# Loop
-plot.list = list()
-dir = "D:/R program/Postdoc-R/PDF and tiffs/theoretical/diff densities all disrates/10E3/"
-setwd(dir)
+three_lith10 <- three
+four_lith10 <- four
+five_lith10 <- five
 
-for (i in uniq_disrate) { 
-  
-  temp_plot =  ggplot(data= subset(modataext, disrate == i)) + 
-    geom_tile(aes(x=group2, y=group1, fill = log10(E_all)), colour = "grey50") +
-    scale_fill_viridis(option="cividis") +
-    ylim(rev(levels(modata$group1))) +
-    theme_Publication() +
-    theme(axis.title = element_blank(), legend.position = "none") +
-    ggtitle(i)
-  plot.list [[i]] = temp_plot
-  ggsave(temp_plot, filename=paste0("plot_", i,".png"), width = 14, height = 10, units = "cm")
-}
+comb.lith10 <- comb %>%
+  mutate(count1 = case_when(host == "1000" & group1 == "Li" ~ 10^4,
+                            host == "10000" & group1 == "Li" ~ 10^5,
+                            host == "1e+05" & group1 == "Li" ~ 10^6))%>%
+  mutate(count2 = case_when(host == "1000" & group2 == "Li" ~ 10^4,
+                            host == "10000" & group2 == "Li" ~ 10^5,
+                            host == "1e+05" & group2 == "Li" ~ 10^6))
+comb.lith10 <- comb
+comb.lith10$count1 [comb.lith10$count1=="45000"] <- "10000"
+comb.lith10$count1 [comb.lith10$count1=="450000"] <- "100000"
+comb.lith10$count1 [comb.lith10$count1=="4500000"] <- "1000000"
+comb.lith10$count2 [comb.lith10$count2=="45000"] <- "10000"
+comb.lith10$count2 [comb.lith10$count2=="450000"] <- "100000"
+comb.lith10$count2 [comb.lith10$count2=="4500000"] <- "1000000"
 
-temp_legend <- ggplot(modataext %>% filter(disrate %in% c("0.001")), aes(group2, group1)) +
+comb.lith10$E_all <- comb.lith10$beta_all*as.numeric(comb.lith10$count2)
+
+resize.win(12,6)
+ggplot(comb.lith10 %>% filter (host %in% c("1000", "1e+05")), aes(x=group2, y=group1)) +
   geom_tile(aes(fill = log10(E_all)), colour = "grey50") +
   scale_fill_viridis(option="cividis") +
   ylim(rev(levels(modata$group1))) + labs (fill="log10 encounters per day") + 
   theme_Publication() +
-  theme(axis.title = element_blank(), legend.position = "bottom", legend.direction = "horizontal", legend.key.height=unit(1,"line"), legend.key.width = unit (2, "line"))
+  theme(axis.title = element_blank(), legend.position = "bottom", legend.direction = "horizontal", legend.key.height=unit(1,"line"), legend.key.width = unit (2, "line")) +facet_grid(host~disrate)
 
-library(gridExtra)
-# create get_legend function
-get_legend<-function(myggplot){
-  tmp <- ggplot_gtable(ggplot_build(myggplot))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)
-}
-
-legend <- get_legend(temp_legend)
-
-#make one plot for everything
-resize.win(16,12)
-grid.arrange(grobs=c(plot.list,list(legend)))
+ggplot(comb.lith10 %>% filter (host %in% c("1000", "1e+05")) , aes(x=group2, y=group1)) +
+  geom_tile(aes(fill = log10(E_all)), colour = "grey50") +  geom_text(size=2.5, color="white", aes(label=formatC(E_all, format = "e", digits = 1))) +
+  scale_fill_viridis(option="cividis") +
+  ylim(rev(levels(modata$group1))) + labs (fill="log10 encounters per day") + 
+  theme_Publication() +
+  theme(axis.title = element_blank(), legend.position = "bottom", legend.direction = "horizontal", legend.key.height=unit(1,"line"), legend.key.width = unit (2, "line")) +facet_grid(host~disrate)

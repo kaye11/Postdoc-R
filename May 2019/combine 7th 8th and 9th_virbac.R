@@ -108,7 +108,7 @@ ggplot(data=all.drop120 %>%
 #export data
 setwd("D:/R program")
 require(openxlsx)
-write.xlsx(all.dropvp, file = "Postdoc-R/Exported Tables/allexp_virbac_minusvp.xlsx")
+write.xlsx(all.drop120, file = "Postdoc-R/Exported Tables/comb_7thto9th.xlsx")
 
 
 
