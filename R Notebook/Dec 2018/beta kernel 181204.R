@@ -22,13 +22,32 @@ require (dplyr)
 require(plyr)
 source ("theme_Publication.R")
 source("resizewin.R")
-#resize.win(12,9)
+resize.win(12,9)
 grid.newpage()
 
 
 ## ------------------------------------------------------------------------
 #Brownian motion (BM)
 #1. make a data frame
+library(readr)
+BM2 <- read_csv("Postdoc-R/CSV Files/BM.csv")
+View(BM)
+
+#2. calculate beta (beta)
+BM2$beta_s <- (2*(K*(10)^4)*Temp*(((BM2$rad+Rehv)*100)^2))/((3*mu*10)*(BM2$rad*Rehv*1e4)) #m3/s
+BM$beta_d <- BM2$beta_s*86400 #to cm3/day
+
+#for CJs data
+
+# go back to this later
+#3. calculate encounters (E)
+BM2$E_V<- BM2$beta_d*BM2$hostnum
+BM2$E_HV <- BM2$beta_d*BM2$virnum*BM2$hostnum #
+
+BM2
+
+
+##no function of host and virus
 BM <- data.frame (group= c("naked", "calcified"), rad= c(1.8E-6, 2.3E-6)) 
 
 #2. calculate beta (beta)
@@ -41,6 +60,7 @@ BM$E <- BM$beta_d*hostnum
 BM$E_HV <- BM$beta_d*virnum*hostnum
 
 BM
+
 
 ## ------------------------------------------------------------------------
 #Differential settling (DS)
@@ -93,13 +113,61 @@ PIC$SinkVel <- ((2*((PIC$rad*100)^2)*(981)*(PIC$Den_celltotal-Den_CH2O))/(9*(mu*
 #g is converted to per day, 864 is the one that converts cm/s to m/day
 
 #plot sinking velocity vs calcification
-
 ggplot(data=PIC, aes(x=PICpercellpg, y=SinkVel, color=Strain, shape=group)) + geom_point(size=5)+theme_Publication()+
-    labs(y = expression("Sinking velocity"~("m"~day^-1)), x = expression("PIC"~cell^-1)) +
-    scale_y_log10(
-        breaks = scales::trans_breaks("log10", function(x) 10^x, n=2),
-        labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l")
+  labs(y = expression("Sinking velocity"~("m"~day^-1)), x = expression("PIC"~cell^-1)) +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=2),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l")
 
+PIC$group2 <- case_when(
+  PIC$PICpercellpg <2  ~ "naked_bouyant",
+  PIC$PICpercellpg >2 & PIC$PICpercellpg < 4 ~ "naked/calcified uncertain",
+  PIC$PICpercellpg >4 & PIC$PICpercellpg < 10 ~ "moderately calcified",
+  PIC$PICpercellpg >10 ~ "strongly calcified", 
+  TRUE ~ as.character(PIC$PICpercellpg)
+)
+
+#for poster
+resize.win(15,12)
+
+PIC$group2 <- factor (PIC$group2,levels= c("naked_bouyant", "naked/calcified uncertain",
+                                                           "moderately calcified", "strongly calcified"),
+                              labels = c("naked", "naked/calcified uncertain",
+                                         "moderately calcified", "heavily calcified"))
+
+
+ggplot(data=PIC, aes(x=PICpercellpg, y=SinkVel, color=group2)) + 
+  geom_point(aes(size=Den_celltotal))+
+  theme_Publication() +
+  labs(y = expression("Sinking velocity"~("m"~day^-1)), x = expression("PIC"~cell^-1)) +
+  theme(legend.position = "right", legend.title = element_blank()) +
+  guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1,byrow=TRUE))
+
+#other format
+resize.win(9,6)
+ggplot(data=PIC, aes(x=PICpercellpg, y=SinkVel, color=group2)) + 
+  geom_point(aes(size=Den_celltotal))+
+  scale_size_continuous(range = c(4, 9)) +
+  theme_Publication2() +
+  labs(y = expression("Sinking velocity"~("m"~day^-1)), x = expression("PIC pg"~cell^-1)) +
+  theme(legend.title = element_blank(), legend.position = "bottom") +
+  guides(linetype=guide_legend(nrow=2), colour=guide_legend(nrow=2,byrow=TRUE))
+
+#for lith
+ggplot(data=PIC, aes(x=perlithpg, y=SinkVel_lith, color=group2)) + 
+  geom_point(aes(size=Denlith))+
+  theme_Publication2() +   scale_y_continuous(breaks=c(0, 0.1, 0.2, 0.3, 0.4)) +
+  labs(y = expression("Sinking velocity"~("m"~day^-1)), x = expression("PIC"~lith^-1)) +
+  theme(legend.title = element_blank(), legend.position = "right") +
+  guides(linetype=guide_legend(nrow=4), colour=guide_legend(nrow=4,byrow=TRUE))
+
+#for predicted (cell and lith, make 2 geom points with diff color, edit in inkscape)
+resize.win(6, 6)
+ggplot(data=PIC_newdata, aes(x=PICpercellpg)) + geom_point(aes(y=SinkVel.pred), size=2) +
+  geom_point(aes(y=SinkVel.pred.lith), size=2, color="blue") + 
+  theme_Publication2()+
+  labs(y = expression("Predicted Sinking velocity "~("m"~day^-1)), x = expression("PIC pg")) 
+  
 #5. calculate sinkvel of viruses
 
 Den_virus <- 1.09 #data from Ben D. fresh EhV-207 density. old density of EhV-207 is 1.19
@@ -135,12 +203,62 @@ scale_y_log10(
 PIC$E_DS_HV <- (PIC$beta_d*virnum*hostnum)  #E calculated with Virus and Host (10:1 MOI)
 PIC$E_DS_V <- (PIC$beta_d*virnum) #E calculated with Virus
 
+#for poster
+ggplot(data=PIC, aes(x=PICpercellpg, y=E_DS_V)) +geom_point(size=6, aes(color=group2)) +
+  theme_Publication2() + geom_smooth (color="black") +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l") +
+  labs(y = expression("viral encounters " ~ day^-1~cell^-1), x = expression("PIC pg"~cell^-1)) +
+  theme(legend.title = element_blank())+
+  guides(linetype=guide_legend(ncol=2), colour=guide_legend(ncol=2,byrow=TRUE))
+
+ggplot(data=PIC, aes(x=Den_celltotal, y=E_DS_V)) +geom_point(size=6, aes(color=group2)) +
+  theme_Publication2() + geom_smooth (color="black") +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l") +
+  labs(y = expression("viral encounters " ~ day^-1~cell^-1), x = expression("Density (g" ~mL^-1~")")) +
+  theme(legend.title = element_blank())+
+  guides(linetype=guide_legend(ncol=2), colour=guide_legend(ncol=2,byrow=TRUE))
+
+#for liths
+ggplot(data=PIC, aes(x=perlithpg, y=Elith_DS_V)) +geom_point(size=5, aes(color=group2)) +
+  theme_Publication2() + geom_smooth (color="black") +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=3),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l") +
+  labs(y = expression("viral encounters " ~ day^-1~lith^-1), x = expression("PIC pg"~lith^-1)) +
+  theme(legend.title = element_blank())+
+  guides(linetype=guide_legend(ncol=2), colour=guide_legend(ncol=2,byrow=TRUE))
+
+ggplot(data=PIC_newdata, aes(x=PICpercellpg, y=E_DS_V.pred)) +geom_point(size=5, aes(color=group2)) +
+  theme_Publication2() + geom_smooth (color="black") +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l") +
+  labs(y = expression("viral encounters " ~ cm^-3~day^-1), x = expression("PIC pg"~cell^-1)) +
+  theme(legend.title = element_blank()) +
+  guides(linetype=guide_legend(ncol=2), colour=guide_legend(ncol=2,byrow=TRUE))
+
+ggplot(data=PIC_newdata, aes(x=perlithpg.pred, y=E_DS_V.pred.lith)) +geom_point(size=5, aes(color=group2)) +
+  theme_Publication2() + geom_smooth (color="black") +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l") +
+  labs(y = expression("viral encounters " ~ cm^-3~day^-1), x = expression("PIC pg"~lith^-1)) +
+  theme(legend.title = element_blank()) +
+  guides(linetype=guide_legend(ncol=2), colour=guide_legend(ncol=2,byrow=TRUE))
+
+
 #8. calculate for lith parameters
+
 
 lithvol <- 3*1e-12 #in cm3, from CJ's paper
 PIC$perlith <- PIC$PICpercell/20 #in g, assuming 20 liths attached
 PIC$perlithpg <- PIC$perlith*1e12 #in pg
 PIC$Denlith <- (PIC$perlith/lithvol) + Den_OcM #in g/cm3, with organic matter attached
+PIC$Denlith_noOCM <- (PIC$perlith/lithvol) #in g/cm3, with organic matter attached
 rad_lith <- 2E-6 #in m radius
 
 PIC$SinkVel_lith <- ((2*((rad_lith*100)^2)*(981)*(PIC$Denlith-Den_CH2O))/(9*(mu*10)))*864 #meter per day
@@ -155,13 +273,6 @@ PIC$Elith_DS_V <- (PIC$beta_d_lith*virnum) #E calculated with Virus
 
 require (dplyr)
 
-PIC$group2 <- case_when(
-  PIC$PICpercellpg <2  ~ "naked_bouyant",
-  PIC$PICpercellpg >2 & PIC$PICpercellpg < 4 ~ "naked/calcified uncertain",
-  PIC$PICpercellpg >4 & PIC$PICpercellpg < 10 ~ "moderately calcified",
-  PIC$PICpercellpg >10 ~ "strongly calcified", 
-  TRUE ~ as.character(PIC$PICpercellpg)
-)
 
 breaks <- 10^(-10:10)
 
@@ -242,6 +353,7 @@ coef(E_DS_V_reg)
 perlith_reg <- lm (perlithpg~PICpercellpg, data=PIC)
 plot(resid(perlith_reg))
 coef(perlith_reg)
+cor(PIC$perlithpg, PIC$SinkVel_lith)
 sinkvel_lith_reg <- lm(SinkVel_lith~PICpercellpg, data = PIC)
 summary(sinkvel_lith_reg)
 plot(residuals.lm(sinkvel_lith_reg))
@@ -309,7 +421,7 @@ coef(PIC_newdata_reg)
 plot(resid(PIC_newdata_reg))
 
 ggplot(data=PIC_newdata, aes(x=PICpercellpg, y=SinkVel.pred)) +geom_point(size=2) +theme_Publication()+
-  labs(y = expression("Predicted Sinking velocity"~("m"~day^-1)), x = expression("PIC"~cell^-1)) 
+  labs(y = expression(atop("Predicted Sinking velocity", paste("('m~day'^-1)"))), x = expression("PIC"~cell^-1)) 
 
 PIC_newdata$beta.pred <- predict(beta_reg, data.frame(PIC_newdata))
 PIC_newdata$E_DS_V.pred <- predict(E_DS_V_reg, data.frame(PIC_newdata))
@@ -321,7 +433,8 @@ ggplot(data=PIC_newdata, aes(x=PICpercellpg, y=E_DS_V.pred)) +geom_point(size=5,
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="l") +
     labs(y = expression("viral encounters " ~ day^-1~cell^-1), x = expression("PIC"~cell^-1)) +
-  theme(legend.title = element_blank())
+  theme(legend.title = element_blank()) 
+
 
 ggplot(data=PIC_newdata, aes(x=PICpercellpg, y=E_DS_HV.pred)) +geom_point(size=5, aes(color=group2)) +
     theme_Publication() + geom_smooth() +
@@ -358,10 +471,10 @@ ggplot(data=PIC_newdata, aes(x=perlithpg.pred, y=SinkVel.pred.lith)) +geom_point
   labs(y = expression("Predicted Sinking velocity of Liths"~("m"~day^-1)), x = expression("PIC"~lith^-1)) 
 
 PIC_newdata$beta.pred.lith <- predict(beta_lith_reg, data.frame(PIC_newdata))
-PIC_newdata$E_DS_V.pred.lith <- predict(Elith_DS_HV_reg, data.frame(PIC_newdata))
+PIC_newdata$E_DS_V.pred.lith <- predict(Elith_DS_V_reg, data.frame(PIC_newdata))
 PIC_newdata$E_DS_HV.pred.lith <- predict(Elith_DS_HV_reg, data.frame(PIC_newdata))
 
-ggplot(data=PIC_newdata, aes(x=PICpercellpg, y=E_DS_V.pred.lith)) +geom_point(size=5, aes(color=group2)) +
+ggplot(data=PIC_newdata, aes(x=perlithpg.pred, y=E_DS_V.pred.lith)) +geom_point(size=5, aes(color=group2)) +
     theme_Publication() + geom_smooth() +
     scale_y_log10(
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
@@ -410,10 +523,10 @@ write.xlsx(summary_DS_bygroup.pred, file = "Postdoc-R/Exported Tables/summary_DS
 
 #make data frame
 
-disrate <- rep_len(10^(-8:-2), length.out=14)
-calc <- rep_len(c("calcified"), length.out=7)
-naked <- rep_len(c("naked"), length.out=7)
-lith <- rep_len(c("lith"), length.out=7)
+disrate <- rep_len (c (1 %o% 10^(seq(-8,-2, 0.5))), length.out=26)
+calc <- rep_len(c("calcified"), length.out=13)
+naked <- rep_len(c("naked"), length.out=13)
+lith <- rep_len(c("lith"), length.out=13)
 group <- c(calc, naked, lith)
 turb <- as.data.frame(cbind(disrate, group))
 
@@ -459,24 +572,30 @@ ggplot(data = turb, aes(x = disrate, y = beta_d, color=group)) + geom_point(size
 
 library(scales)
 
-ggplot(data = turb, aes(x = disrate, y = E_turb_V, color=group)) + geom_point(size =5) +
-   scale_y_log10(
+#for poster
+resize.win(8,6)
+
+turb$group <- factor(turb$group, levels= c("naked", "calcified", "lith"))
+
+ggplot(data = turb, aes(x = disrate, y = E_turb_V, color=group)) + geom_point(size =6) +
+  scale_y_log10(
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   scale_x_log10(
-        breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=8),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
-  annotation_logticks()+
-  theme_Publication()+
+  annotation_logticks()+ scale_color_manual (values=c("#F8766D", "#C77CFF", "blue")) +
+  theme_Publication2()+
   labs(y = expression("viral encounters " ~ day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
   theme(legend.title = element_blank())
+  
 
 ggplot(data = turb, aes(x = disrate, y = E_turb_HV, color=group)) + geom_point(size =5) +
    scale_y_log10(
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   scale_x_log10(
-        breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   annotation_logticks()+
   theme_Publication()+
@@ -597,15 +716,22 @@ ggplot(graph1, aes(group2, y = E_V, color=betakernel)) +
 
 graph1.sum <- summarySE (graph1, measurevar = "E_V", groupvars = c("betakernel", "group2"))
 
-ggplot(graph1.sum, aes(group2, y = E_V, color=betakernel)) + 
-  geom_point(size=5,  position=position_dodge(0.2))+
+#plot brownian motion, DS, and BM+DS
+graph1.sum$betakernel <- factor(graph1.sum$betakernel, levels=c("beta_BM", "beta_DS", "beta_BM_DS"), 
+                               labels =c ("BM", "DS", "BM+DS"))
+
+#for poster
+resize.win(6,6)
+ggplot(graph1.sum, aes(x=betakernel, y = E_V, color=group2)) + 
+  geom_point(size=6,  position=position_dodge(0.2))+
   scale_y_log10(
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   annotation_logticks(sides = "l")+
-  theme_Publication() +
+  theme_Publication2() +
   labs(y = expression("viral encounters " ~ day^-1~cell^-1)) +
-  theme(legend.title = element_blank())
+  theme(legend.title = element_blank(), axis.title.x = element_blank())+
+  guides(colour=guide_legend(nrow=2,byrow=TRUE)) 
   
 ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_turb", "beta_all")), 
        aes(x=disrate,y = E_V, color=group2, linetype=betakernel)) + 
@@ -622,22 +748,27 @@ ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_turb", "beta_all"))
   guides(linetype=guide_legend(nrow  =4), colour=guide_legend(nrow=4,byrow=TRUE)) +
   labs(y = expression("viral encounters " ~ day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
   theme(legend.title = element_blank())
-  
+
+#for poster  
+resize.win(9,6)
 ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")), 
        aes(x=disrate,y = E_V, color=group2)) + 
-  geom_line(size=1, position=position_jitter(w=0.02, h=0))+
-  geom_line(data = lith, aes(y= E_V, color=group2)) +
-   scale_y_log10(
+  geom_line(size=1, position=position_jitter(w=0.02, h=0), aes(linetype="cell"))+
+  geom_line(data = lith, aes(y= E_V, color=maingroup, linetype="lith")) +
+  scale_linetype_manual (values=c("solid", "dotted")) +
+  scale_y_log10(
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=2),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   scale_x_log10(
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   annotation_logticks()+
-  theme_Publication() +
+  theme_Publication2() +
   theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
   labs(y = expression("viral encounters " ~day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
-  theme(legend.title = element_blank())
+  theme(legend.title = element_blank(), legend.position = "right", legend.key.width=unit(3,"line"))+
+  guides(linetype=guide_legend(ncol=1), colour=guide_legend(ncol=1,byrow=TRUE))
+
 
 
 ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")), 
@@ -656,8 +787,66 @@ ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")),
   labs(y = expression("viral encounters " ~ cm^-3~day^-1),x = expression("dissipation rate "~(m^2~s^-3))) +
   theme(legend.title = element_blank())
 
+allbetas.melt.dropnc <- allbetas.melt [!allbetas.melt$group2 =="naked/calcified uncertain", ]
+allbetas.melt.dropnc$group2 <- factor(allbetas.melt.dropnc$group2, levels = c("naked", "moderately calcified", "moderately calcified-lith", "strongly calcified", "strongly calcified-lith"))
+
+allbetas.melt.dropnc <- allbetas.melt.dropnc%>%
+  arrange(factor(group2, c("naked", "moderately calcified", "moderately calcified-lith", "strongly calcified", "strongly calcified-lith")))
+
+ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")), 
+       aes(x=disrate,y = E_V, color=group2)) + 
+    geom_line(size=1, position=position_jitter(w=0.02, h=0))+
+    geom_line(data = lith, aes(y= E_V, color=group2)) +
+    scale_y_log10(
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=2),
+        labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+    scale_x_log10(
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
+        labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+    annotation_logticks()+
+    theme_Publication() +
+    theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression("viral encounters " ~day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
+    theme(legend.title = element_blank())+ guides(linetype=guide_legend(nrow  =4), colour=guide_legend(nrow=4,byrow=TRUE)) 
+
+
+#for presentation
+
+allbetas.melt$group2 <- factor (allbetas.melt$group2,levels= c("naked", "naked/calcified uncertain",
+                                           "moderately calcified", "strongly calcified"),
+                      labels = c("naked", "naked/calcified uncertain",
+                                 "moderately calcified", "heavily calcified"))
+
+ggplot(data=allbetas.melt %>% filter(betakernel== "beta_all"), 
+       aes(x=disrate,y = E_V, color=group2)) + 
+  geom_line(size=1.5, position=position_jitter(w=0.02, h=0))+
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  scale_x_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+  annotation_logticks()+
+  theme_Publication2() +
+  theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression("viral encounters " ~ cm^-3~day^-1),x = expression("dissipation rate "~(m^2~s^-3))) +
+  theme(legend.title = element_blank())+
+  guides(colour=guide_legend(nrow=2,byrow=TRUE))
+
+
+write.xlsx(allbetas.melt.dropnc, file = "Postdoc-R/Exported Tables/allbetas.xlsx")
+
+
+
+
+
 
 ## ------------------------------------------------------------------------
 require (knitr)
-purl(input = "D:/R program/Postdoc-R/R Notebook/Nov 2018/beta kernel 181204.Rmd") #output file will be on the main R directory and saved with the same file name
+purl(input = "D:/R program/Postdoc-R/R Notebook/Dec 2018/beta kernel 181204.Rmd") #output file will be on the main R directory and saved with the same file name
+
+## ------------------------------------------------------------------------
+
+
+
 

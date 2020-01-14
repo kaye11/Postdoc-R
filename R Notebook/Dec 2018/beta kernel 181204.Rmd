@@ -140,7 +140,7 @@ Sinkvelbeta.plot<- ggplot(data=PIC, aes(x=SinkVel, y=beta_d, color=Strain, shape
 
 Sinkvelbeta.plot #change ticks
 
-ggplotly(Sinkvelbeta.plot)
+#ggplotly(Sinkvelbeta.plot)
 
 ggplotly(ggplot(data=PIC, aes(x=Strain, y=SinkVel)) + geom_boxplot()+theme_Publication())
 
@@ -164,6 +164,7 @@ lithvol <- 3*1e-12 #in cm3, from CJ's paper
 PIC$perlith <- PIC$PICpercell/20 #in g, assuming 20 liths attached
 PIC$perlithpg <- PIC$perlith*1e12 #in pg
 PIC$Denlith <- (PIC$perlith/lithvol) + Den_OcM #in g/cm3, with organic matter attached
+PIC$Denlith_noOCM <- (PIC$perlith/lithvol) #in g/cm3, with organic matter attached
 rad_lith <- 2E-6 #in m radius
 
 PIC$SinkVel_lith <- ((2*((rad_lith*100)^2)*(981)*(PIC$Denlith-Den_CH2O))/(9*(mu*10)))*864 #meter per day
@@ -438,10 +439,10 @@ turbulence
 
 #make data frame
 
-disrate <- rep_len(10^(-8:-2), length.out=14)
-calc <- rep_len(c("calcified"), length.out=7)
-naked <- rep_len(c("naked"), length.out=7)
-lith <- rep_len(c("lith"), length.out=7)
+disrate <- rep_len (c (1 %o% 10^(seq(-8,-2, 0.5))), length.out=26)
+calc <- rep_len(c("calcified"), length.out=13)
+naked <- rep_len(c("naked"), length.out=13)
+lith <- rep_len(c("lith"), length.out=13)
 group <- c(calc, naked, lith)
 turb <- as.data.frame(cbind(disrate, group))
 
@@ -492,7 +493,7 @@ ggplot(data = turb, aes(x = disrate, y = E_turb_V, color=group)) + geom_point(si
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   scale_x_log10(
-        breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=8),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   annotation_logticks()+
   theme_Publication()+
@@ -504,7 +505,7 @@ ggplot(data = turb, aes(x = disrate, y = E_turb_HV, color=group)) + geom_point(s
         breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   scale_x_log10(
-        breaks = scales::trans_breaks("log10", function(x) 10^x, n=4),
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
         labels = scales::trans_format("log10", scales::math_format(10^.x))) +
   annotation_logticks()+
   theme_Publication()+
@@ -686,6 +687,34 @@ ggplot(data=allbetas.melt %>% filter(betakernel %in% c("beta_all")),
   theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
   labs(y = expression("viral encounters " ~ cm^-3~day^-1),x = expression("dissipation rate "~(m^2~s^-3))) +
   theme(legend.title = element_blank())
+
+allbetas.melt.dropnc <- allbetas.melt [!allbetas.melt$group2 =="naked/calcified uncertain", ]
+allbetas.melt.dropnc$group2 <- factor(allbetas.melt.dropnc$group2, levels = c("naked", "moderately calcified", "moderately calcified-lith", "strongly calcified", "strongly calcified-lith"))
+
+allbetas.melt.dropnc <- allbetas.melt.dropnc%>%
+  arrange(factor(group2, c("naked", "moderately calcified", "moderately calcified-lith", "strongly calcified", "strongly calcified-lith")))
+
+ggplot(data=allbetas.melt.dropnc %>% filter(betakernel %in% c("beta_all")), 
+       aes(x=disrate,y = E_V, color=group2)) + 
+    geom_line(size=1, position=position_jitter(w=0.02, h=0))+
+    geom_line(data = lith, aes(y= E_V, color=group2)) +
+    scale_y_log10(
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=2),
+        labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+    scale_x_log10(
+        breaks = scales::trans_breaks("log10", function(x) 10^x, n=7),
+        labels = scales::trans_format("log10", scales::math_format(10^.x))) +
+    annotation_logticks()+
+    theme_Publication() +
+    theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression("viral encounters " ~day^-1~cell^-1), x = expression("dissipation rate "~(m^2~s^-3))) +
+    theme(legend.title = element_blank())+ guides(linetype=guide_legend(nrow  =4), colour=guide_legend(nrow=4,byrow=TRUE)) 
+
+write.xlsx(allbetas.melt.dropnc, file = "Postdoc-R/Exported Tables/allbetas.xlsx")
+
+
+
+
 
 ```
 
