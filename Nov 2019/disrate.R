@@ -21,4 +21,10 @@ ggplot(turb, aes(x=disrate, y=depth, color=as.factor(wind))) + geom_line(size=1)
   breaks = scales::trans_breaks("log10", function(x) 10^x, n=6),
   labels = scales::trans_format("log10", scales::math_format(10^.x))) + annotation_logticks(sides="b") +
   theme_Publication2() + theme (legend.direction = "vertical", legend.position = c(0.80, 0.20), legend.key.width = unit(0.7, "cm")) + labs(color=expression("wind speed"~(m~s^-1))) + geom_hline(yintercept = (-30), linetype="dotted")
-                                                                                                                                                                                 
+
+ggplot(turb, aes(x=log10(disrate), y=depth, color=as.factor(wind))) + geom_line(size=1) + labs (x=expression("log10 dissipation rate"~ (m^2~s^-3)), y="depth (m)") +
+  theme_Publication() + theme (legend.direction = "vertical", legend.position = c(0.80, 0.25), legend.key.width = unit(0.7, "cm")) + labs(color=expression("wind speed"~(m~s^-1))) + geom_hline(yintercept = (-30), linetype="dotted")
+
+
+ggplot(turb, aes(x=log10(disrate), y=depth, color=as.factor(wind))) + geom_line(size=1) + labs (x=expression("log10 dissipation rate"~ (m^2~s^-3)), y="depth (m)") +
+  theme_Publication() + theme (legend.direction = "vertical", legend.position = c(0.80, 0.25), legend.key.width = unit(0.7, "cm")) + labs(color=expression("wind speed"~(m~s^-1))) + geom_hline(yintercept = (-30), linetype="dotted") + scale_y_continuous(position = "top")                                                                                                                                                                         

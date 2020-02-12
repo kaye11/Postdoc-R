@@ -3,7 +3,7 @@ library(plyr)
 
 multmerge = function(mypath){
   filenames=list.files(path=mypath, full.names=TRUE)
-  datalist = lapply(filenames, function(x){read.csv(file=x,header=T, sep="")})
+  datalist = lapply(filenames, function(x){read.csv(file=x,header=T, sep="", stringsAsFactors=FALSE)})
 }
 
 mydata=multmerge("d:/Postdoc/theoretical/NA-VICE/wind")
@@ -12,7 +12,7 @@ mergeddata <- ldply(mydata, data.frame)
 
 ##just get date, wind_speed_c
 source("inspack.R")
-winddata <- mergeddata %>% select (date, wind_speed_r_port, wind_speed_r_stbd, wind_speed_c_port, wind_speed_c_stbd, wind_speed_c)
+winddata <- mergeddata %>% select (date, wind_speed_c, wind_speed_r_port,	wind_speed_r_stbd,	wind_speed_c_port,	wind_speed_c_stbd)
 
 write.table (winddata, "Postdoc-R/Exported Tables/winddata.csv", sep=";", col.names=T, row.names=F)
 winddata.raw.sum <- summarySE (winddata, measurevar = "wind_speed_c", groupvars = c ("date"))

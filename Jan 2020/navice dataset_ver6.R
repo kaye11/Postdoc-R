@@ -44,14 +44,20 @@ navice_alldata$Infection <- as.factor(navice_alldata$Infection)
 navice$abundance <- as.numeric(navice$abundance)
 navice.sum <- summarySE (navice %>% filter (!(abundance %in% c(NA))), measurevar = "abundance", groupvars =c("date2", "Infection", "entitycode", "entityperml"))
 
-resize.win(12,6)
-ggplot(navice.sum %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith")), aes(x=date2, y=log10(abundance), color=Infection)) + geom_point (size=4)  + geom_errorbar(aes(ymin=log10(abundance-se), ymax=log10(abundance+se)), width=0.25, size=1) + geom_smooth(aes(group=1), color="black", method="loess") +
-  labs (y="log10 entities per mL", x= "date", color="Infection Phase") + theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~., scales="free")
+navice.sum$entitycode <- factor (navice.sum$entitycode, levels = c("Cc", "Ehux", "Li", "Nc", "Vi"),
+                                 labels = c("Cc", "E. huxleyi", "Li", "Nc", "Vi"))
 
+resize.win(12,6) #saved
+ggplot(navice.sum %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith")), aes(x=date2, y=log10(abundance), color=Infection)) + geom_point (size=4)  + geom_errorbar(aes(ymin=log10(abundance-se), ymax=log10(abundance+se)), width=0.25, size=1) + geom_smooth(aes(group=1), color="#525252", method="loess") +
+  labs (y = expression(log10~"entities "~mL^-1), x= "date", color="infection phase") + theme_Publication2() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~., scales="free") +
+  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506"))
+
+resize.win(15,8)
 ggplot(navice.sum %>% filter (entityperml %in% c("Ehux_naked", "Ehux_calc", "EhVIntra", "lith")), aes(x=date2, y=log10(abundance), color=Infection)) + geom_point (size=4)  + geom_errorbar(aes(ymin=log10(abundance-se), ymax=log10(abundance+se)), width=0.25, size=1) + geom_smooth(aes(group=1), color="black", method="loess") +
-  labs (y="log10 entities per mL", x= "date") + theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~., scales="free")
+  labs (y="log10 entities per mL", x= "date", color="infection phase") + theme_Publication2() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_grid(~entitycode) +
+  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506"))
 
 #calculate encounters, for this remove EhVdata
 virus <- navice_alldata %>% filter (entitycode=="Vi")
@@ -80,11 +86,19 @@ melted_navice$propEhV <- as.numeric (melted_navice$propEhV)
 melted_navice$EhV <- as.numeric (melted_navice$EhV)
 melted_navice$abundance <- as.numeric (melted_navice$abundance)
 melted_navice$encountersEhV <- melted_navice$beta_all*melted_navice$EhV*melted_navice$abundance
+melted_navice$encountersEhV_vironly <- melted_navice$beta_all*melted_navice$EhV
 melted_navice$encounters_propEhV <- melted_navice$beta_all*melted_navice$propEhV*melted_navice$abundance
 
 #plot encounters first
+
+melted_navice$entitycode <- melted_navice$entitycode[,  c("Nc", "Cc", "Li", "Vi")]
+
+melted_navice <- melted_navice%>% arrange (factor(entitycode, c("Nc", "Cc", "Li"))) 
+
 #by date
-ggplot(melted_navice %>% drop_na(encountersEhV), aes(x=as.factor(date2), y=log10(encountersEhV), color=Infection, shape=Infection)) +geom_boxplot() + geom_point (position = position_jitterdodge(), size=2) + labs (y = expression("total encounters "~day^-1), x= "date") + theme_Publication2() + theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.title = element_blank()) + facet_grid(~entitycode)
+ggplot(melted_navice %>% drop_na(encountersEhV), aes(x=as.factor(date2), y=log10(encountersEhV), color=Infection, shape=Infection)) +geom_boxplot() + geom_point (position = position_jitterdodge(), size=2) + labs (y = expression("total encounters "~day^-1), x= "date") + facet_grid(~entitycode) + theme_Publication2() + theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.title = element_blank()) 
+
+melted_navice.sum <- summarySE (melted_navice %>% filter (!(encountersEhV %in% c(NA))), measurevar = "encountersEhV", groupvars =c("date2", "Infection", "entitycode"))
 
 melted_navice$virus <- factor(melted_navice$virus, levels = c("fast", "slow"))
 
@@ -167,11 +181,20 @@ ggplot(navice_EI.sum, aes(x=date2, y=log10(value), color=virus, shape=virus, fil
 
 melted_EI3$variable <- factor (melted_EI3$variable,levels= c("abundance", "encounters_propEhV", "adstot_prop",
                                                              "sucinf_prop"), 
-                               labels = c("entity abundance", "encounters per day", "adsorbed per day", "successful infection per day"))
+                               labels = c("entity abundance", "encounters per day", "adsorbed EhVs per day", "successful infection per day"))
 resize.win(12,9)
-ggplot(melted_EI3 %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(value), color=entitycode, shape=entitycode)) + geom_boxplot() + geom_point (position=position_jitterdodge()) + theme_Publication2() + theme (axis.text.x = element_text(angle = 45, hjust = 1), legend.title = element_blank()) + facet_grid(virus~variable) + labs (y="log10 value", x="date") +
-  geom_hline(yintercept = log10(1))
+ggplot(melted_EI3 %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(value), color=entitycode, shape=entitycode)) + geom_boxplot() + geom_point (position=position_jitterdodge()) + theme_Publication2() + theme (axis.text.x = element_text(angle = 45, hjust = 1), legend.title = element_blank()) + facet_grid(virus~variable) + labs (y="log10 value", x="date") + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
 
 ggplot(melted_EI3 %>% filter(!(date2 %in% c("06-30"))), aes(x=Infection, y=log10(value), color=virus, shape=virus))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + facet_grid(entitycode~variable) + theme_Publication2() + theme (legend.title = element_blank()) + labs (y="log10 value", x="date")
 
 write.table(navice_EI, "Postdoc-R/Exported Tables/navice_EI_upper30m.csv", sep=";", col.names=T, row.names=F)
+
+
+##wind data NA-VICE
+
+wind.sum <- summarySE(data=navice_alldata, measurevar = "disrate", group=c("depth"))
+resize.win(6,6)
+#this is the only one that works
+
+ggplot(wind.sum, aes(y=log10(disrate), x=depth)) + geom_point (size=4)  + geom_errorbar(aes(ymin=log10(disrate-se), ymax=log10(disrate+se))) + coord_flip() + scale_y_continuous(position = 'right') + theme_Publication2() + scale_x_continuous(breaks = c (0, -10, -20, -30))+ labs (y=expression("log10 dissipation rate"~ (m^2~s^-3)), x="depth (m)") + geom_smooth(color="#525252")
+  

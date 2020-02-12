@@ -19,11 +19,10 @@ library(FME)
 
 #delta is burst size, gamma is mortality, beta is summary of beta_all, burst size from Vardi paper
 
-naked_calm_fast<- c(alpha = 1.04, beta = 4e-07, delta = 2500, gamma = 0.33, hostmort = 0.59, ads=0.05, hst=1, inf=0.3)
+naked_calm_fast<- c(alpha = 1.04, beta = 4e-07, delta = 2500, gamma = 0.33, hostmort = 0.59, adshst=0.05, hsinf=0.06)
 calcified_calm_fast<- c(alpha = 1.65, beta = 3e-06, delta = 25, gamma = 0.33, hostmort = 0.67, ads=0.13, hst=0.25, inf=0.3)
-navice_calcified_0701<- c(alpha = 1.65, beta = 4.7e-06, delta = 25, gamma = 0.33, hostmort = 0.67, ads=0.13, hst=0.25, inf=0.3)
-navice_naked_0701<- c(alpha = 1.04, beta = 3.9e-07, delta = 2500, gamma = 0.33, hostmort = 0.59, ads=0.05, hst=1, inf=0.3)
-lith_calm <- c(alpha=)
+navice_calcified_0701<- c(alpha = 1.65, beta = 4.7e-06, delta = 25, gamma = 0.33, hostmort = 0.67, ads=0.11, inf=0.3)
+navice_naked_0701<- c(alpha = 1.04, beta = 3.9e-07, delta = 2500, gamma = 0.33, hostmort = 0.59, ads=0.0048, inf=0.3)
 
 
 pars=navice_calcified_0701 #do this one by one
@@ -35,8 +34,8 @@ lv_model <- function(pars, times = seq(0, 120, by = 0.1)) {
   # derivative
   deriv <- function(t, state, pars) {
     with(as.list(c(state, pars)), {
-      d_x <- (alpha * x) - ((beta*ads*hst*inf) * x * y) - (hostmort * x)
-      d_y <- delta * (beta*ads*hst*inf) * x * y - gamma * y
+      d_x <- (alpha * x) - ((beta*ads*inf) * x * y) - (hostmort * x)
+      d_y <- delta * (beta*ads*inf) * x * y - gamma * y
       return(list(c(x = d_x, y = d_y)))
     })
   }
