@@ -10,11 +10,14 @@ ggplot(wind.sum, aes(y=log10(disrate), x=depth)) + geom_point (size=6)  + geom_e
 
 resize.win(12,6) #saved
 
-resize.win (9,5)
+resize.win (9,4.5)
 #all counts, saved
-ggplot(navice.sum %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith")), aes(x=date2, y=log10(abundance), color=Infection)) + geom_point (size=4)  + geom_errorbar(aes(ymin=log10(abundance-se), ymax=log10(abundance+se)), width=0.25, size=1) + geom_smooth(aes(group=1), color="#525252", method="loess") +
-  labs (y = expression(log10~"entities "~mL^-1), x= "date", color="infection phase") + theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(.~entitycode, scales="free") +
+#BOXPLOTS WITH SMOOTH##
+
+#boxplot, count with smooth
+ggplot(navice %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith")), aes(x=date2, y=log10(abundance), color=Infection)) + geom_boxplot()+geom_point (size=4)  + geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
+  labs (y = expression(log10~"entities "~mL^-1), x= "date", color="infection phase") + theme_Publication() +
+  theme(axis.text.x = element_blank(), axis.title.x = element_blank(), legend.title = element_blank()) + facet_wrap(entitycode~., scales="free") +
   scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506"))
 
 melted_navice.sum.enc <- summarySE (melted_navice %>% filter (!(encountersEhV %in% c(NA))), measurevar = "encountersEhV", groupvars =c("date2", "Infection", "entitycode"))
@@ -109,86 +112,4 @@ ggplot(navice_EI %>% drop_na(encounters_propEhV), aes(x=as.factor(entitycode), y
 ggplot(navice_EI %>% drop_na(adstot_prop), aes(x=as.factor(entitycode), y=log10(adstot_prop), color=entitycode, shape=entitycode)) +geom_boxplot() + geom_point (position = position_jitterdodge(), size=1) + labs (y = expression("log10 total adsorbed EhVs "~day^-1)) + facet_grid(~virus) + theme_Publication2() + theme(axis.title.x = element_blank(),legend.position = "none")+ scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
 
 ggplot(navice_EI %>% drop_na(sucinf_prop), aes(x=as.factor(entitycode), y=log10(sucinf_prop), color=entitycode, shape=entitycode)) +geom_boxplot() + geom_point (position = position_jitterdodge(), size=1) + labs (y = expression("log10 successful infection "~day^-1)) + facet_grid(~virus) + theme_Publication2() + theme(axis.title.x = element_blank(),legend.position = "none")+ scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
-
-#######
-#BOXPLOTS WITH SMOOTH##
-
-#boxplot, count with smooth
-resize.win(9,6)
-ggplot(navice %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith")), aes(x=date2, y=log10(abundance), color=Infection)) + geom_boxplot()+geom_point (size=4)  + geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression(log10~"entities "~mL^-1), x= "date", color="infection phase") + theme_Publication() +
-  theme(axis.text.x = element_blank(), axis.title.x = element_blank(), legend.title = element_blank()) + facet_wrap(entitycode~., scales="free") +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506"))
-
-#encounters total
-ggplot(melted_navice %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(encountersEhV), color=Infection)) + geom_boxplot()+geom_point (size=4)  + geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression(log10~"total encounters "~day^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed")
-
-#encounters vironly
-ggplot(melted_navice %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(encountersEhV_vironly), color=Infection)) + geom_boxplot()+geom_point (size=4)  + geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression("viral encounters " ~day^-1~cell^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed")
-
-#only EIs
-ggplot(navice_EI %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(encountersEhV), color=Infection)) + geom_boxplot()+geom_point (size=4)  + 
-  geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression(log10~"total encounters "~day^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed")
-
-ggplot(navice_EI %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(encountersEhV_vironly), color=Infection)) + geom_boxplot()+geom_point (size=4)  + geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression("viral encounters " ~day^-1~cell^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed")
-
-#propEhVs
-resize.win (9,7)
-ggplot(navice_EI %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(encountersEhV), color=Infection)) + geom_boxplot()+geom_point (size=4)  + 
-  geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression(log10~"total encounters "~day^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed") + facet_grid(virus~entitycode)
-
-ggplot(navice_EI %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(encountersEhV_vironly), color=Infection)) + geom_boxplot()+geom_point (size=4)  + geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression("viral encounters " ~day^-1~cell^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed") + facet_grid(virus~entitycode)
-
-#adsorption
-
-navice_EI$entitycode <- reorder.factor (navice_EI$entitycode, new.order = c("Nc", "Cc", "Li")) 
-
-ggplot(navice_EI %>% filter(!(date2 %in% c("06-30"))), aes(x=date2, y=log10(adstot_prop), color=Infection)) + geom_boxplot()+geom_point (size=4)  + 
-  geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression(log10~"total adsorbed EhVs "~day^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed") + facet_grid(virus~entitycode)
-
-#sucinf
-resize.win(6,7)
-ggplot(navice_EI %>% filter(!(date2 %in% c("06-30"))) %>% filter(!(entitycode %in% c("Li"))) , aes(x=date2, y=log10(sucinf), color=Infection)) + geom_boxplot()+geom_point (size=4)  + 
-  geom_smooth( method="loess", se=TRUE, aes(group=1),  color="#525252") +
-  labs (y = expression(log10~"successful infection "~day^-1), x= "date", color="infection phase") + 
-  theme_Publication2() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + facet_wrap(entitycode~.) +
-  scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506")) +
-  geom_hline(yintercept = log10(1), linetype="dashed") + facet_grid(virus~entitycode) + 
-  guides(colour=guide_legend(nrow=1,byrow=TRUE, title.position = "top"))
 

@@ -34,7 +34,7 @@ Cd <- 1.15*(10)^-3 #drag coefficient
 Den_air <-  (1.225)*10^-3 #g/m3 at sea level and 15C
 Den_CH2O= 1.025 #g/m3 density seawater at 18C #these two will even out so no need to convert
 windmas$U <- sqrt(Cd*((windmas$wind_speed_c)^2)*((Den_air/Den_CH2O)))
-windmas$Uc <- ((10/15.24)^0.143)*windmas$U
+windmas$Uc <- ((15.24/10)^0.143)*windmas$U
 windmas$disrate <- (windmas$U^3)/(K*(abs(windmas$depth)))
 
 #this plot is chaotic, dont run. using all data is such a bad idea
@@ -47,7 +47,7 @@ winddata.sum$depth <- rep(c(seq(-150, 0, 0.5)), each=21) #problem here
 
 #constants
 winddata.sum$U <- sqrt(Cd*((winddata.sum$wind_speed_c)^2)*((Den_air/Den_CH2O)))
-winddata.sum$Uc <- ((10/15.24)^0.143)*winddata.sum$U
+winddata.sum$Uc <- ((15.24/10)^0.143)*winddata.sum$U
 winddata.sum$disrate <- (winddata.sum$U^3)/(K*(abs(winddata.sum$depth)))
 
 ggplot(winddata.sum, aes(x=log10(disrate), y=depth, color=as.factor(date), shape=Infection)) + geom_point(size=1) + geom_line() + theme_clean() + labs (x="Dissipation rate", y="Depth")
@@ -67,3 +67,11 @@ ggplot(winddata.sum %>% filter (disrate>1e-7) %>% filter (depth>=-30))+ geom_den
 #save summary
 write.table(winddata.sum2, "Postdoc-R/Exported Tables/winddata_sum2.csv", sep=";", col.names=T, row.names=F)
 
+
+##join wind data
+navice <- read_excel("D:/Postdoc/theoretical/NA-VICE/NAVICE Ehux Sytox VLP wrangled_KB_191119.xlsx")
+navice$date <- as.Date (navice$date)
+winddata.sum$date <- as.Date(winddata.sum$date)
+navice_alldata <- left_join(navice, winddata.sum %>% select (date, cast, Station, Infection, depth, disrate))
+
+write.table(navice_alldata, "Postdoc-R/Exported Tables/navice_alldata.csv", sep=";", col.names=T, row.names=F)

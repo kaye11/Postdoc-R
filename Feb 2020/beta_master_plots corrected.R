@@ -112,7 +112,8 @@ ggplot(data=calmstormy, aes(x=log10(host),y = log10(days) , color=group, fill=gr
   scale_fill_manual (values=c("#e41a1c", "#377eb8", "#4daf4a"))
 
 #viruses probs
-probs <- as.data.frame(list (group = as.factor (rep(c("Cc", "Cc", "Li",  "Li", "Nc"), 4)), group2 = as.factor(rep(c("Cc-Hc", "Cc-Mc", "Li-Hc", "Li-Mc", "Nc"), 4)), virus = rep(c("more virulent", "less virulent"), 1, each=10), condition=rep(c("field", "lab"), 2, each=5), hostnum = rep(c(10^3, 10^3, 10^4, 10^4, 10^3, 10^5, 10^5, 10^6, 10^6, 10^5), 1, each=1),  virnum = rep(c(10^4, 10^6), 2, each=5), prophost = rep(c(0.9, 0.9, 1, 1, 0.1), 4), propvir= rep(c(0.67, 0.33), 1, each=10), ads = rep(c(0.00482, 0.00482, 0.01670, 0.01670, 0.11400), 4), inf = rep(c(0.3, 0.3, NA, NA, 0.3, 0.3, 0.3, NA, NA, 0.3, 0.06, 0.06, NA, NA, 0.06, 0.06, 0.06, NA, NA, 0.06))))
+probs <- as.data.frame(list (group = as.factor (rep(c("Cc", "Cc", "Li",  "Li", "Nc"), 4)), group2 = as.factor(rep(c("Cc-Hc", "Cc-Mc", "Li-Hc", "Li-Mc", "Nc"), 4)), virus = rep(c("more virulent", "less virulent"), 1, each=10), condition=rep(c("field", "lab"), 2, each=5), hostnum = rep(c(10^3, 10^3, 10^4, 10^4, 10^3, 10^5, 10^5, 10^6, 10^6, 10^5), 1, each=1),  virnum = rep(c(10^4, 10^6), 2, each=5), prophost = rep(c(0.9, 0.9, 1, 1, 0.1), 4), propvir= rep(c(0.67, 0.33), 1, each=10), ads = rep(c(5.49E-06, 5.49E-06, 9.63E-05, 9.63E-05, 2.40E-04)
+, 4), inf = rep(c(0.3, 0.3, NA, NA, 0.3, 0.3, 0.3, NA, NA, 0.3, 0.06, 0.06, NA, NA, 0.06, 0.06, 0.06, NA, NA, 0.06))))
 
 calmstormy$group2 <- as.factor(calmstormy$group2)
 
@@ -150,4 +151,4 @@ melted_calmstormy$variable <- factor (melted_calmstormy$variable,levels= c("host
 
 
 resize.win (9,6.5)#change field to lab and vice-versa
-ggplot(melted_calmstormy %>% filter (condition=="lab"), aes(x=watcon, y=log10(value), color=group, shape=group))  + geom_boxplot()+ geom_point (position=position_jitterdodge(), size=1.5) + facet_grid(virus~variable) + theme_Publication() + theme (axis.title.x = element_blank(), legend.title = element_blank()) + labs (y="log10 value") + geom_hline(yintercept = log10(1), linetype="dashed") + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) 
+ggplot(melted_calmstormy %>% filter (condition=="field"), aes(x=watcon, y=log10(value), color=group, shape=group))  + geom_boxplot()+ geom_point (position=position_jitterdodge(), size=1.5) + facet_grid(virus~variable) + theme_Publication() + theme (axis.title.x = element_blank(), legend.title = element_blank()) + labs (y="log10 value") + geom_hline(yintercept = log10(1), linetype="dashed") + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) 
