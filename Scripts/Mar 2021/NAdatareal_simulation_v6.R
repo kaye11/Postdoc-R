@@ -192,7 +192,7 @@ NAdata.betas_1m$beta_turb <- (4.2*pi*((NAdata.betas_1m$disrate_1m/(v))^0.5)*((NA
 NAdata.betas_1m$beta_all <- NAdata.betas_1m$beta_BM + NAdata.betas_1m$beta_DS + NAdata.betas_1m$beta_turb
 
 #probabilities
-probs <- as.data.frame(list (entity = as.factor (rep(c("calcified","lith", "naked"), 2)), virus = rep(c("high", "low"), 1, each=3),propvir= rep(c(0.33, 0.67), 1, each=3), ads = rep(c(0.0095, 0.0134, 0.0305), 2), inf = rep(c(0.3, NA, 0.3,  0.06, NA, 0.06))))
+probs <- as.data.frame(list (entity = as.factor (rep(c("calcified","lith", "naked"), 2)), virus = rep(c("high", "low"), 1, each=3),propvir= rep(c(0.33, 0.67), 1, each=3), ads = rep(c(0.20, 0.15, 0.72), 2), inf = rep(c(0.3, NA, 0.3,  0.06, NA, 0.06))))
 
 NAdata.betas_1m$entity <- as.factor(NAdata.betas_1m$entity)
 
@@ -273,6 +273,8 @@ Cc.abundance$step <- "abundance"
 Cc.enccomb <- ggplot (data=melted_NAdata.betas_comb_1m %>% filter (entity=="calcified") %>% filter (step=="enccomb"), 
                       aes(x=log10(value))) +
   geom_histogram(binwidth = 0.1, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
+
+
 
 Cc.enccomb <- ggplot_build(Cc.enccomb)$data[[1]] %>% select (x, y)
 Cc.enccomb$entity <- "calcified"
@@ -371,7 +373,7 @@ NAdata.betas_30m$sucinf <- NAdata.betas_30m$encounters*NAdata.betas_30m$ads*NAda
 high_NAdata.betas_30m <- NAdata.betas_30m %>% filter (virus=="high")
 low_NAdata.betas_30m <- NAdata.betas_30m %>% filter (virus=="low")
 
-NAdata.betas_comb_30m <- NAdata.betas_30m %>% filter (virus=="high") %>% select (c(lat, lon, entity, depthf, abundance30, virnum, disrate_30m))
+NAdata.betas_comb_30m <- NAdata.betas_30m %>% filter (virus=="high") %>% select (c(lat, lon, entity, depthf, abundance, virnum, disrate_30m))
 NAdata.betas_comb_30m$enccomb30 <- high_NAdata.betas_30m$encounters + low_NAdata.betas_30m$encounters
 NAdata.betas_comb_30m$adscomb30 <- high_NAdata.betas_30m$adstot + low_NAdata.betas_30m$adstot
 NAdata.betas_comb_30m$infcomb30 <- high_NAdata.betas_30m$sucinf + low_NAdata.betas_30m$sucinf
@@ -391,15 +393,15 @@ NAdata.betas_comb_1m$absads <- NAdata.betas_comb_1m$peradsorbed*NAdata.betas_com
 
 
 #melt dataset
-melted_NAdata.betas_comb_30m <- reshape2::melt (NAdata.betas_comb_30m %>% select (lat, lon, entity, depthf, abundance30, enccomb30, adscomb30, infcomb30), id.vars = c("lat", "lon", "depthf", "entity"), value.name = "value", variable.name = "step")
+melted_NAdata.betas_comb_30m <- reshape2::melt (NAdata.betas_comb_30m %>% select (lat, lon, entity, depthf, abundance, enccomb30, adscomb30, infcomb30), id.vars = c("lat", "lon", "depthf", "entity"), value.name = "value", variable.name = "step")
 
-melted_NAdata.betas_comb_30m$step <-  reorder.factor (melted_NAdata.betas_comb_30m$step, new.order = c("abundance30", 'enccomb30', "adscomb30", "infcomb30")) 
+melted_NAdata.betas_comb_30m$step <-  reorder.factor (melted_NAdata.betas_comb_30m$step, new.order = c("abundance", 'enccomb', "adscomb", "infcomb")) 
 
 variable_labs <- c(
-  `abundance30` = 'concentration~(mL^{-1})',
-  `enccomb30` = 'encounters~entity^{-1}~d^{-1}',
-  `adscomb30` = 'adsorptions~entity^{-1}~d^{-1}',
-  `infcomb30` = 'infections~entity^{-1}~d^{-1}'
+  `abundance` = 'concentration~(mL^{-1})',
+  `enccomb` = 'encounters~entity^{-1}~d^{-1}',
+  `adscomb` = 'adsorptions~entity^{-1}~d^{-1}',
+  `infcomb` = 'infections~entity^{-1}~d^{-1}'
 )
 
 #change breaks
@@ -611,25 +613,25 @@ ggsave(filename = "comb_30m.png", width = 20, height = 5, dpi = 600, device="png
 Ehux.abundance30 <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="abundance"), 
                             aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.1, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity")
-Ehux.abundance30 <- ggplot_build(Ehux.abundance30)$data[[1]] %>% select (1:3)
+Ehux.abundance30 <- ggplot_build(Ehux.abundance30)$data[[1]] %>% select (x,y)
 Ehux.abundance30$entity <- "E. huxleyi"
 Ehux.abundance30$step <- "abundance"
 
-Ehux.enccomb30 <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="enccomb"), 
+Ehux.enccomb30 <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="enccomb30"), 
                           aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.1, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
-Ehux.enccomb30 <- ggplot_build(Ehux.enccomb30)$data[[1]] %>% select (x,y)
+Ehux.enccomb30 <- ggplot_build(Ehux.enccomb30)$data[[1]] %>% select (x, y)
 Ehux.enccomb30$entity <- "E. huxleyi"
 Ehux.enccomb30$step <- "enccomb"
 
-Ehux.adscomb30 <- ggplot (data=NAdata.betas_comb_30m_cn  %>% filter (step=="adscomb"), 
+Ehux.adscomb30 <- ggplot (data=NAdata.betas_comb_30m_cn  %>% filter (step=="adscomb30"), 
                           aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.1, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.adscomb30 <- ggplot_build(Ehux.adscomb30)$data[[1]] %>% select (x, y)
 Ehux.adscomb30$entity <- "E. huxleyi"
 Ehux.adscomb30$step <- "adscomb"
 
-Ehux.infcomb30 <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="infcomb"), 
+Ehux.infcomb30 <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="infcomb30"), 
                           aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.1, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 
@@ -777,7 +779,7 @@ lith_30m$xexp <- 10^(lith_30m$x)
 
 ##density plots
 #shelf
-Ehux.abundance30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="abundance") %>% filter (depthf=="shelf/slope"), 
+Ehux.abundance30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="abundance") %>% filter (depthf=="<200 m"), 
                                   aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity")
 Ehux.abundance30.shelf <- ggplot_build(Ehux.abundance30.shelf)$data[[1]] %>% select (x,y)
@@ -785,7 +787,7 @@ Ehux.abundance30.shelf$entity <- "E. huxleyi"
 Ehux.abundance30.shelf$step <- "abundance"
 Ehux.abundance30.shelf$depthf <- "shelf/slope"
 
-Ehux.enccomb30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="enccomb") %>% filter (depthf=="shelf/slope"),  
+Ehux.enccomb30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="enccomb30") %>% filter (depthf=="<200 m"),  
                                 aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.enccomb30.shelf <- ggplot_build(Ehux.enccomb30.shelf)$data[[1]] %>% select (x,y)
@@ -794,7 +796,7 @@ Ehux.enccomb30.shelf$step <- "enccomb"
 Ehux.enccomb30.shelf$depthf <- "shelf/slope"
 
 
-Ehux.adscomb30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn  %>% filter (step=="adscomb") %>% filter (depthf=="shelf/slope"), 
+Ehux.adscomb30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn  %>% filter (step=="adscomb30") %>% filter (depthf=="<200 m"), 
                                 aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.adscomb30.shelf <- ggplot_build(Ehux.adscomb30.shelf)$data[[1]] %>% select (x, y)
@@ -802,7 +804,7 @@ Ehux.adscomb30.shelf$entity <- "E. huxleyi"
 Ehux.adscomb30.shelf$step <- "adscomb"
 Ehux.adscomb30.shelf$depthf <- "shelf/slope"
 
-Ehux.infcomb30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="infcomb") %>% filter (depthf=="shelf/slope"),
+Ehux.infcomb30.shelf <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="infcomb30") %>% filter (depthf=="<200 m"),
                                 aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 
@@ -812,7 +814,7 @@ Ehux.infcomb30.shelf$step <- "infcomb"
 Ehux.infcomb30.shelf$depthf <- "shelf/slope"
 
 #open ocean
-Ehux.abundance30.open <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="abundance") %>% filter (depthf=="open ocean"), 
+Ehux.abundance30.open <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="abundance") %>% filter (depthf==">200 m"), 
                                  aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity")
 Ehux.abundance30.open <- ggplot_build(Ehux.abundance30.open)$data[[1]] %>% select (x, y)
@@ -820,7 +822,7 @@ Ehux.abundance30.open$entity <- "E. huxleyi"
 Ehux.abundance30.open$step <- "abundance"
 Ehux.abundance30.open$depthf <- "open ocean"
 
-Ehux.enccomb30.open <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="enccomb") %>% filter (depthf=="open ocean"),  
+Ehux.enccomb30.open <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="enccomb30") %>% filter (depthf==">200 m"),  
                                aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.enccomb30.open <- ggplot_build(Ehux.enccomb30.open)$data[[1]] %>% select (x,y)
@@ -829,7 +831,7 @@ Ehux.enccomb30.open$step <- "enccomb"
 Ehux.enccomb30.open$depthf <- "open ocean"
 
 
-Ehux.adscomb30.open <- ggplot (data=NAdata.betas_comb_30m_cn  %>% filter (step=="adscomb") %>% filter (depthf=="open ocean"), 
+Ehux.adscomb30.open <- ggplot (data=NAdata.betas_comb_30m_cn  %>% filter (step=="adscomb30") %>% filter (depthf==">200 m"), 
                                aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.adscomb30.open <- ggplot_build(Ehux.adscomb30.open)$data[[1]] %>% select (x, y)
@@ -837,7 +839,7 @@ Ehux.adscomb30.open$entity <- "E. huxleyi"
 Ehux.adscomb30.open$step <- "adscomb"
 Ehux.adscomb30.open$depthf <- "open ocean"
 
-Ehux.infcomb30.open <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="infcomb") %>% filter (depthf=="open ocean"),
+Ehux.infcomb30.open <- ggplot (data=NAdata.betas_comb_30m_cn %>% filter (step=="infcomb30") %>% filter (depthf==">200 m"),
                                aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 
@@ -869,8 +871,8 @@ Ehux_30m_sep$xexp <- 10^(Ehux_30m_sep$x)
 forinfcomb30 <- Ehux_30m_sep %>% filter (step=="infcomb")
 forinfcomb30$percent <- (10^(forinfcomb30$x))*100
 
-nrow(forinfcomb30[forinfcomb30$percent<1, ]) #123
-nrow(forinfcomb30[forinfcomb30$percent>1, ]) #59
+nrow(forinfcomb30[forinfcomb30$percent<1, ]) #121
+nrow(forinfcomb30[forinfcomb30$percent>1, ]) #110
 
 resize.win (6, 6)
 
@@ -885,7 +887,7 @@ ggplot (data=Ehux_30m_sep %>% filter (step=="infcomb"), aes(x=log10((10^x)*100),
 ####1m
 ##density plots
 #shelf
-Ehux.abundance1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="abundance") %>% filter (depthf=="shelf/slope"), 
+Ehux.abundance1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="abundance") %>% filter (depthf=="<200 m"), 
                                  aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity")
 Ehux.abundance1.shelf <- ggplot_build(Ehux.abundance1.shelf)$data[[1]] %>% select (x,y)
@@ -893,7 +895,7 @@ Ehux.abundance1.shelf$entity <- "E. huxleyi"
 Ehux.abundance1.shelf$step <- "abundance"
 Ehux.abundance1.shelf$depthf <- "shelf/slope"
 
-Ehux.enccomb1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="enccomb") %>% filter (depthf=="shelf/slope"),  
+Ehux.enccomb1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="enccomb") %>% filter (depthf=="<200 m"),  
                                aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.enccomb1.shelf <- ggplot_build(Ehux.enccomb1.shelf)$data[[1]] %>% select (x,y)
@@ -902,7 +904,7 @@ Ehux.enccomb1.shelf$step <- "enccomb"
 Ehux.enccomb1.shelf$depthf <- "shelf/slope"
 
 
-Ehux.adscomb1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn  %>% filter (step=="adscomb") %>% filter (depthf=="shelf/slope"), 
+Ehux.adscomb1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn  %>% filter (step=="adscomb") %>% filter (depthf=="<200 m"), 
                                aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.adscomb1.shelf <- ggplot_build(Ehux.adscomb1.shelf)$data[[1]] %>% select (x, y)
@@ -910,7 +912,7 @@ Ehux.adscomb1.shelf$entity <- "E. huxleyi"
 Ehux.adscomb1.shelf$step <- "adscomb"
 Ehux.adscomb1.shelf$depthf <- "shelf/slope"
 
-Ehux.infcomb1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="infcomb") %>% filter (depthf=="shelf/slope"),
+Ehux.infcomb1.shelf <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="infcomb") %>% filter (depthf=="<200 m"),
                                aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 
@@ -920,7 +922,7 @@ Ehux.infcomb1.shelf$step <- "infcomb"
 Ehux.infcomb1.shelf$depthf <- "shelf/slope"
 
 #open ocean
-Ehux.abundance1.open <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="abundance") %>% filter (depthf=="open ocean"), 
+Ehux.abundance1.open <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="abundance") %>% filter (depthf==">200 m"), 
                                 aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity")
 Ehux.abundance1.open <- ggplot_build(Ehux.abundance1.open)$data[[1]] %>% select (x, y)
@@ -928,7 +930,7 @@ Ehux.abundance1.open$entity <- "E. huxleyi"
 Ehux.abundance1.open$step <- "abundance"
 Ehux.abundance1.open$depthf <- "open ocean"
 
-Ehux.enccomb1.open <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="enccomb") %>% filter (depthf=="open ocean"),  
+Ehux.enccomb1.open <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="enccomb") %>% filter (depthf==">200 m"),  
                               aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.enccomb1.open <- ggplot_build(Ehux.enccomb1.open)$data[[1]] %>% select (x,y)
@@ -937,7 +939,7 @@ Ehux.enccomb1.open$step <- "enccomb"
 Ehux.enccomb1.open$depthf <- "open ocean"
 
 
-Ehux.adscomb1.open <- ggplot (data=NAdata.betas_comb_1m_cn  %>% filter (step=="adscomb") %>% filter (depthf=="open ocean"), 
+Ehux.adscomb1.open <- ggplot (data=NAdata.betas_comb_1m_cn  %>% filter (step=="adscomb") %>% filter (depthf==">200 m"), 
                               aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 Ehux.adscomb1.open <- ggplot_build(Ehux.adscomb1.open)$data[[1]] %>% select (x, y)
@@ -945,7 +947,7 @@ Ehux.adscomb1.open$entity <- "E. huxleyi"
 Ehux.adscomb1.open$step <- "adscomb"
 Ehux.adscomb1.open$depthf <- "open ocean"
 
-Ehux.infcomb1.open <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="infcomb") %>% filter (depthf=="open ocean"),
+Ehux.infcomb1.open <- ggplot (data=NAdata.betas_comb_1m_cn %>% filter (step=="infcomb") %>% filter (depthf==">200 m"),
                               aes(x=log10(combvalue))) +
   geom_histogram(binwidth = 0.05, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") 
 
@@ -978,8 +980,8 @@ Ehux_1m_sep$xexp <- 10^(Ehux_1m_sep$x)
 forinfcomb <- Ehux_1m_sep %>% filter (step=="infcomb")
 forinfcomb$percent <- (10^(forinfcomb$x))*100
 
-nrow(forinfcomb[forinfcomb$percent<1, ]) #99
-nrow(forinfcomb[forinfcomb$percent>1, ]) #84
+nrow(forinfcomb[forinfcomb$percent<1, ]) #98
+nrow(forinfcomb[forinfcomb$percent>1, ]) #137
 
 resize.win (6, 6)
 
@@ -1017,6 +1019,10 @@ lith_30m_sep.sum <- lith_30m_sep %>% filter (!(step=="abundance")) %>% group_by 
 Ehux_1m_sep %>% filter (step=="adscomb") %>% group_by (depthf) %>% filter (xexp>0.99) %>%  summarise (freq=sum(y*100))
 
 lith_30m_sep %>% filter (step=="enccomb") %>% group_by (depthf) %>% filter (y>0.02) %>%  summarise (freq=sum(y*100))
+
+Ehux_30m_sep %>% filter (step=="infcomb") %>% group_by (depthf) %>% filter (y>0.02) %>%  summarise (freq=sum(y*100))
+Ehux_1m_sep %>% filter (step=="infcomb") %>% group_by (depthf) %>% filter (y>0.02) %>%  summarise (freq=sum(y*100))
+
 
 Ehux_30m_sep %>% filter (step=="enccomb") %>% group_by (depthf) %>% filter (xexp>0.99) %>%  summarise (freq=sum(y*100))
 
@@ -1138,7 +1144,7 @@ navice$percent <- 100*navice$combvalue
 #filter infection and Cc (panel A), navice slice
 navice_slice.png <- ggplot(data = world)+ geom_sf(color="gray", fill="gainsboro") + 
   coord_sf(xlim = c(-40, -20), ylim = c(50, 70 ) , expand = FALSE) +
-  geom_point(data= navice %>% filter (step=="infcomb"),  aes(x = lon, y = lat, color = log10(combvalue)))+
+  geom_point(data= navice %>% filter (step=="infcomb30"),  aes(x = lon, y = lat, color = log10(combvalue)))+
   scale_colour_gradientn(colours = BlRed(100)) +
   scale_x_continuous(breaks=seq(-40, -20, 10)) +
   scale_y_continuous(breaks=seq(50, 70, 5)) +
@@ -1150,14 +1156,15 @@ navice_slice.png <- ggplot(data = world)+ geom_sf(color="gray", fill="gainsboro"
   labs (color= expression(log[10]), x="", y="") +
   guides(color = guide_colorbar(title.position = "right"))
 
+
 ggsave(filename = "navice_slice.png", width = 5, height = 5, dpi = 600, device="png", units="in")
 
-##put coords on the navice slice
+##put coords on 'the navice slice
 coords <- read.csv("D:/Users/karengb/CSV Files/coords.txt", sep=";")
 
 naviceslice_coords_origcolor.png <- ggplot(data = world)+ geom_sf(color="gray", fill="gainsboro") + 
   coord_sf(xlim = c(-40, -20), ylim = c(50, 70 ) , expand = FALSE) +
-  geom_point(data= navice %>% filter (step=="infcomb"),  aes(x = lon, y = lat, color = log10(combvalue)))+
+  geom_point(data= navice %>% filter (step=="infcomb30") %>% filter (combvalue>0.099),  aes(x = lon, y = lat, color = log10(combvalue)))+
   scale_colour_gradientn(colours = BlRed(100)) +
   scale_x_continuous(breaks=seq(-40, -20, 10)) +
   scale_y_continuous(breaks=seq(50, 70, 5)) +
@@ -1175,7 +1182,7 @@ ggsave(filename = "naviceslice_coords_origcolor.png", width = 5, height = 5, dpi
 
 naviceslice_coords_origcolor_percent.png <- ggplot(data = world)+ geom_sf(color="gray", fill="gainsboro") + 
   coord_sf(xlim = c(-40, -20), ylim = c(50, 70 ) , expand = FALSE) +
-  geom_point(data= navice %>% filter (step=="infcomb"),  aes(x = lon, y = lat, color = log10(combvalue*100)))+
+  geom_point(data= navice %>% filter (step=="infcomb30"),  aes(x = lon, y = lat, color = log10(combvalue*100)))+
   scale_colour_gradientn(colours = BlRed(100)) +
   scale_x_continuous(breaks=seq(-40, -20, 10)) +
   scale_y_continuous(breaks=seq(50, 70, 5)) +
@@ -1184,11 +1191,13 @@ naviceslice_coords_origcolor_percent.png <- ggplot(data = world)+ geom_sf(color=
         legend.key.width = unit (1.25, "line"), legend.title = element_text(angle = 270, hjust= 0.5), 
         panel.spacing = unit(3, "lines"), axis.title = element_blank(), legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(10,10,10,10)) + 
-  labs (color= expression("percent infected"~d^-1), x="", y="") +
+  labs (color= expression("log10 percent infected"~d^-1), x="", y="") +
   guides(color = guide_colorbar(title.position = "right")) +
   geom_point(data=coords, aes(x=lon, y=lat), color="black", size=4)
 
 ggsave(filename = "naviceslice_coords_origcolor_percent.png", width = 5, height = 5, dpi = 600, device="png", units="in")
+
+navice.inf <- navice %>% filter (step=="infcomb30") %>% group_by (depthf) %>% filter (percent>9.9)
 
 
 ##check disrates
@@ -1204,9 +1213,9 @@ ggplotly(ggplot (data=NAdata_merge, aes(x=log10(disrate_30m))) +
 
 
 ##whole NA infection
-NA_infection <- ggplot(data = world)+ geom_sf(color="gray", fill="gainsboro") + 
+NA_infection_coords_1m <- ggplot(data = world)+ geom_sf(color="gray", fill="gainsboro") + 
   coord_sf(xlim = c(-70, 10), ylim = c(30, 75) , expand = FALSE)+ 
-  geom_point(data= NAdata.betas_comb_30m_cn %>% filter(step=="infcomb"), 
+  geom_point(data= NAdata.betas_comb_1m_cn %>% filter(step=="infcomb") %>% filter (combvalue>0.099), 
              aes(x = lon, y = lat, color = log10(combvalue)))+
   scale_colour_gradientn(colours = BlRed(100))  + 
   scale_x_continuous(breaks=seq(-70, 10, 20)) +
@@ -1217,6 +1226,8 @@ NA_infection <- ggplot(data = world)+ geom_sf(color="gray", fill="gainsboro") +
         panel.spacing = unit(3, "lines"), axis.title = element_blank(), legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(10,10,10,10)) + 
   labs (color= expression(log[10]~"infections"~entity^-1~d^-1), x="", y="") +
-  guides(color = guide_colorbar(title.position = "right")) 
+  guides(color = guide_colorbar(title.position = "right")) +
+  geom_point(data=coords, aes(x=lon, y=lat), color="black", size=4)
 
-ggsave(filename = "NA_infection.png", width = 7.5, height = 5, dpi = 600, device="png", units="in")
+
+ggsave(filename = "NA_infection_coords_1m.png", width = 7.5, height = 5, dpi = 600, device="png", units="in")
