@@ -29,16 +29,17 @@ ggplot (data=NAdata_merge, aes(x=log10(abundance), color=depthf, fill=depthf)) +
   theme_Publication2() + 
   labs (x = expression(log[10]~"concentration"~mL^-1), y= "probability density") +  theme(legend.title = element_blank(), legend.key.width = unit (1, "cm")) +   facet_grid(~entity)
 
-ggplot (data=NAdata_merge, aes(x=log10(abundance), y=stat(density*0.1), color=depthf, fill=depthf)) +
-  #geom_histogram(binwidth = 0.1, aes (y = ..count../sum(..count..)), alpha=0.25, position="identity") +
+ggplot (data=NAdata_merge %>% filter (entity=="E. huxleyi"), aes(x=log10(abundance), color=depthf, fill=depthf)) +
+  geom_histogram(binwidth = 0.1, aes (y = log10(..count..)), alpha=0.25, position="identity") +
   #geom_density() +
   #geom_density(alpha=.2, position="stack", color="black", size=0.5) + 
-  #geom_density(alpha=.2, color="black", size=0.5, position= "identity", aes (y = binwidth*..density..)) +
-  geom_histogram(binwidth=0.1, alpha=0.2) +
-  geom_density (alpha=0.2,  position="stack") + 
+  #geom_density(alpha=.2, color="black", size=0.5, position= "identity", aes (y = ..density..)) +
+  #geom_histogram(binwidth=0.1, alpha=0.2) +
+  #geom_density (alpha=0.2,  position="stack") + 
   scale_x_continuous(n.breaks = 6) +
   theme_Publication2() + 
-  labs (x = expression(log[10]~"concentration"~mL^-1), y= "probability density") +  theme(legend.title = element_blank(), legend.key.width = unit (1, "cm")) +   facet_grid(~entity)
+  #labs (x = expression(log[10]~"concentration"~mL^-1), y= "probability density") +  
+  theme(legend.title = element_blank(), legend.key.width = unit (1, "cm")) +   facet_grid(~depthf)
 
 
 ggplot (data=NAdata_merge %>% filter (entity=="Cc") %>% filter (depthf=="<200 m"), aes(x=log10(abundance), y=stat(density*0.05), color=depthf, fill=depthf)) +

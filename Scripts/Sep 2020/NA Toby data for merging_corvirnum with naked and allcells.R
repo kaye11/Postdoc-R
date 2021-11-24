@@ -29,6 +29,9 @@ NA_abundancedata$ratcoc <- NA_abundancedata$Nliths_max/NA_abundancedata$Ncells_m
 NA_abundancedata.ratcoc.mean <- summarise (NA_abundancedata, ratcoc.mean=mean(ratcoc, na.rm=TRUE), 
                                            ratcoc.median=median(ratcoc, na.rm=TRUE))
 
+NA_forratcoc <- NA_abundancedata %>% filter (!(waterdepth_m<100))
+
+
 #melted_NAabundancedata <- NA_abundancedata_entity %>% filter (!(abundance < 10)) %>%  filter (!(abundance == "NA"))
 
 melted_NAabundancedata <- NA_abundancedata_entity

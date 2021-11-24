@@ -1,8 +1,9 @@
 library(marmap)
 library(oce)
 library(ocedata)
-data("coastlineWorldFine")
 source("inspack.R")
+
+data("coastlineWorldFine")
 
 b = getNOAA.bathy(lon1 = -70, lon2 = 10, lat1 = 30, lat2 = 75, resolution = 1)
 
@@ -16,7 +17,7 @@ dim(bathyZ) = dim(b)
 mp <- function() {
   mapPlot(coastlineWorldFine,  projection="+proj=merc",
           longitudelim = c(-70, 10),
-          latitudelim = c(30, 75), col='gainsboro', border="grey")
+          latitudelim = c(30, 75), col='gainsboro', border="grey", cex.axis=1.5) ##if you change cex, it messes up the text size  BUT if you run it all from the start it is fine 
 }
 
 resize.win (6,7)
@@ -25,7 +26,7 @@ mp()
 
 mapContour(bathyLon,bathyLat,bathyZ,
            levels = c(-100, -200),
-           col = 'black', drawlabels=TRUE )
+           col = '#253494', drawlabels=TRUE )
 
 
 #add coords for NA-VICE
@@ -48,6 +49,6 @@ navice()
 
 mapContour(bathyLon,bathyLat,bathyZ,
            levels = c(-100, -200),
-           col = 'black', drawlabels=TRUE )
+           col = '#253494', drawlabels=TRUE )
 
 mapPoints(longitude = pts$lon, latitude = pts$lat, pch = 16, col = '#de2d26', cex=2)
