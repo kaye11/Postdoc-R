@@ -1,0 +1,652 @@
+##Workspace: beta_master7
+
+#summaries
+BM #BM summary
+DS_pred #predicted data
+
+#for paper
+resize.win(6,6)
+
+#PIC vs sinkvel cell, real data, saved SI with lm and no lm
+PIC$group <- reorder.factor (PIC$group, new.order = c("Nc", "Cc"))
+PIC_newdata$group <- reorder.factor (PIC_newdata$group, new.order = c("Nc", "Cc"))
+
+ggplot(data=PIC, aes(x=PICpercellpg, y=SinkVel, color=group, shape=Strain)) + geom_point(size=7)+theme_Publication2()+
+  labs(y = expression("sinking velocity "~("m"~day^-1)), x = expression("PIC pg"~cell^-1)) + 
+  theme(legend.direction = "horizontal", legend.box = "vertical", legend.title = element_blank()) + #geom_smooth (method="lm", aes(group=1), color="#525252") + 
+  scale_color_manual(values=c("#e41a1c", "#377eb8")) + scale_shape_manual(values=c(1:12)) #get regression
+
+#edited as lab suggested
+resize.win (6,4)
+ggplot(data=PIC, aes(x=PICpercellpg, y=SinkVel, color=group)) + geom_point(aes(size=Den_celltotal))+
+  scale_size(range = c(1,10)) + theme_Publication2()+
+  labs(y = expression("sinking velocity "~("m"~d^-1)), x = expression("PIC pg"~cell^-1)) + 
+  theme(legend.direction = "vertical", legend.box = "vertical", legend.position="right", legend.title = element_blank()) +
+  scale_color_manual(values=c("#e41a1c","#377eb8")) + scale_shape_manual(values=c(1:11)) +
+  guides(colour = guide_legend(override.aes = list(size=5)))
+
+resize.win (6,6)
+ggplot(data=PIC, aes(x=PICpercellpg, y=log10(beta_DS), color=group, shape=Strain)) + geom_point(size=5)+theme_Publication2()+
+  labs(y = expression(log[10]~beta[S]~("encounters "~mL~day^-1)), x = expression("PIC pg"~cell^-1))  +
+  theme(legend.direction = "horizontal", legend.box = "vertical")+  
+  scale_color_manual(values=c("#e41a1c", "#377eb8"))  + scale_shape_manual(values=c(1:12))
+
+PIC$group <- factor (PIC$group,labels= c("naked", "calcified"))
+PIC$group <- reorder.factor (PIC$group, new.order = c("naked", "calcified"))
+liths <- data.frame (group=c("lith"), Den_celltotal =2.6, SinkVel = 0.45, beta_DS = 2.70*10^-6)
+
+#edited as lab suggested
+resize.win (6.5,4.5)
+ggplot(data=PIC, aes(x=SinkVel, y=log10(beta_DS), color=group, shape=Strain)) + geom_point(size=5)+theme_Publication2()+
+  geom_point (data=liths, aes(x=SinkVel, y=log10(beta_DS), color="lith"), size=11, shape=20) +
+  labs(y = expression(log[10]~beta[S]~("encounters "~mL~d^-1)), x = expression("sinking velocity "~("m"~d^-1)))  +
+  theme(legend.direction = "vertical", legend.box = "vertical", legend.position="right", legend.title = element_blank()) +
+  scale_color_manual(values=c( "#377eb8", "#4daf4a",  "#e41a1c"))  + scale_shape_manual(values=c(1:12))
+
+resize.win(5,5)
+#Predicted data (equally spaced data) sinkvel
+PIC_newdata$group <- factor (PIC_newdata$group,labels= c("naked", "calcified"))
+ggplot(data=PIC_newdata, aes(x=PICpercellpg, y=SinkVel, color=group)) + geom_point(size=5)+theme_Publication2()+
+  labs(y = expression("sinking velocity "~("m"~d^-1)), x = expression("PIC pg"~cell^-1)) +
+  theme(legend.direction = "horizontal", legend.box = "vertical", legend.title = element_blank()) +
+  scale_color_manual(values=c("#e41a1c", "#377eb8"))
+
+#Predicted data (equally spaced data) betas, with liths, beta vs sinkvel
+ggplot(data=PIC_newdata, aes(x=SinkVel, y=log10(beta_DS), color=group)) + geom_point(size=5)+theme_Publication2()+
+  geom_point (data=liths, aes(x=SinkVel, y=log10(beta_DS), color="lith"), size=9, shape=20) +
+  labs(y = expression(log[10]~beta[S]~("encounters "~mL~d^-1)), x = expression("sinking velocity "~("m"~d^-1)))  +
+  theme(legend.direction = "horizontal", legend.box = "vertical", legend.title = element_blank()) +  
+  scale_color_manual(values=c("#377eb8", "#4daf4a", "#e41a1c"))  
+
+#Predicted data (equally spaced data) betas, without liths, beta vs. PIC
+ggplot(data=PIC_newdata, aes(x=PICpercellpg, y=log10(beta_DS), color=group)) + geom_point(size=5)+theme_Publication2()+
+  labs(y = expression(log[10]~beta[S]~("encounters "~mL~d^-1)), x = expression("PIC pg"~cell^-1))  +
+  theme(legend.direction = "horizontal", legend.box = "vertical", legend.title = element_blank()) +  
+  scale_color_manual(values=c("#e41a1c", "#377eb8"))
+
+#turbulence
+resize.win(5,5)
+turb$group <- factor (turb$group,labels= c("naked", "calcified", "lith"))
+ggplot(data = turb, aes(x = log10(disrate), y = log10(beta_turb), color=group)) + geom_line(size =2.5) +
+  theme_Publication2() +
+  labs(y = expression(log[10]~beta[T]~("encounters "~mL~d^-1)), 
+       x = expression(log[10]~epsilon~(m^2~s^-3))) +
+  theme(legend.title = element_blank()) +
+  scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) + guides(colour = guide_legend(override.aes = list(size=5)))
+
+#encounters all betas
+#viral encounters per day per cell
+all$group <- reorder.factor (all$group, new.order = c("Nc", "Cc", "Li"))
+all$group <- factor (all$group,labels= c("naked", "calcified", "lith"))
+
+resize.win(6,5)
+
+ggplot(data=all, aes(x=log10(disrate),y = log10(E_all_highvir) , color=group)) + 
+  geom_line(size=2, position=position_jitter(w=0.02, h=0), aes(linetype="shelf/slope"))+
+  geom_line(size=2, data = all, aes(y= log10(E_all_lowvir), color=group,linetype="open ocean")) +
+  theme_Publication2() +
+  theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression(log[10]~"viral encounters " ~entity^-1~d^-1), x = expression(log[10]~epsilon~(m^2~s^-3))) +
+  theme(legend.title = element_blank()) +
+  scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) + 
+  scale_fill_manual (values=c("#e41a1c", "#377eb8", "#4daf4a"))
+
+#for all encounters
+resize.win (7.5,6)
+ggplot(data=all, aes(x=log10(disrate),y = log10(E_all_low_resvi) , color=group, fill=group)) + 
+  geom_line(size=2, position=position_jitter(w=0.02, h=0), aes(linetype="open ocean"))+
+  geom_line(size=2, data = all, aes(y= log10(E_all_high_resvi), color=group, linetype="shelf/slope")) +
+  theme_Publication2() +
+  theme(legend.title = element_blank(), legend.key.width=unit(1,"cm"))+
+  labs(y = expression(log[10]~"total encounters " ~mL^-1~d^-1), x = expression(log[10]~epsilon~(m^2~s^-3))) +
+  theme(legend.title = element_blank()) +
+  scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) + 
+  scale_fill_manual (values=c("#e41a1c", "#377eb8", "#4daf4a"))
+
+#change color schemes for everything. follow scheme for naked, calc, lith
+
+#merge 3 disrates (10e-3, 10e-5, 10e-8)
+calm <- all %>% filter (disrate %in% c ("1e-08")) %>% select (group, beta_BM, beta_DS, disrate, beta_turb)
+calm$watcon <- "calm"
+
+stormy <- all %>% filter (disrate %in% c ("0.001")) %>% select (group, beta_BM, beta_DS, disrate, beta_turb)
+stormy$watcon <- "stormy"
+
+mid <- all %>% filter (disrate %in% c ("1e-05")) %>% select (group, beta_BM, beta_DS, disrate, beta_turb)
+mid$watcon <- "mid"
+
+calmstormy <- rbind (calm, stormy, mid)
+calmstormy$beta_all <- calmstormy$beta_BM + calmstormy$beta_DS + calmstormy$beta_turb
+
+##probabilities check alpha v5 final
+probs <- as.data.frame(list (group = as.factor (rep(c("calcified","lith", "naked"), 4)), virus = rep(c("high", "low"), 1, each=6), condition=rep(c("open ocean", "shelf/slope"), 2, each=3), hostnum = rep(c(10^3, 10^3, 10^3, 10^5, 10^5, 10^5), 1),  virnum = rep(c(((10^3)*30), ((10^5)*30)), 2, each=3), prophost = rep(c(1, 25, 0.1), 4), propvir= rep(c(0.33, 0.67), 1, each=6), ads = rep(c(0.20, 0.72, 0.15), 4), inf = rep(c(0.3, NA, 0.3, 0.3, NA, 0.3, 0.06, NA, 0.06, 0.06, NA, 0.06))))
+
+#calmstormy_backup <- calmstormy
+#calmstormy <- calmstormy_backup
+
+#join calmstormy and probs
+calmstormy <- left_join(calmstormy, probs)
+
+#calculate propEhV
+calmstormy$propEhV <- calmstormy$virnum* calmstormy$propvir
+
+#calculate prophost
+calmstormy$prophostnum <- calmstormy$hostnum* calmstormy$prophost
+
+#calculate encounters fast slow
+calmstormy$encounters <- calmstormy$beta_all*calmstormy$propEhV #encounters per entity
+
+#calculate total adsorption by virus props
+calmstormy$adstot <- calmstormy$encounters*calmstormy$ads
+
+#calculate total successful infections
+calmstormy$sucinf <- calmstormy$encounters*calmstormy$ads*calmstormy$inf
+
+calmstormy$group <- reorder.factor (calmstormy$group, new.order = c("naked", "calcified", "lith"))
+
+#edit in excel to make life easier
+write.table(calmstormy, "Postdoc-R/Exported Tables/calmstormy_master7a_plots_highads.csv", sep=";", col.names=T, row.names=F)
+
+#make individual data table for getting the distilled plot
+conc <- calmstormy[1:12, ] %>% select (group, virus, condition, prophostnum, propEhV)
+conc$parameter="concentration"
+conc$calm <- NA
+conc$stormy <- NA
+conc$mid <-conc$prophostnum
+
+enc <- reshape(calmstormy %>% select(group, watcon, virus, condition, prophostnum, propEhV, encounters), idvar=c("group", "virus", "condition", "prophostnum", "propEhV"), timevar="watcon", direction="wide")
+enc$parameter= "encounters"
+ads <- reshape(calmstormy %>% select(group, watcon, virus, condition, prophostnum, propEhV, adstot), idvar=c("group", "virus", "condition", "prophostnum", "propEhV"), timevar="watcon", direction="wide")
+ads$parameter= "adsorption"
+inf <- reshape(calmstormy %>% select(group, watcon, virus, condition, prophostnum, propEhV, sucinf), idvar=c("group", "virus", "condition", "prophostnum", "propEhV"), timevar="watcon", direction="wide")
+inf$parameter= "infections"
+
+#renaming
+enc <- setnames (enc, c("encounters.calm", "encounters.stormy", "encounters.mid"), c("calm", "stormy", "mid"))
+ads <- setnames (ads, c("adstot.calm", "adstot.stormy", "adstot.mid"), c("calm", "stormy", "mid"))
+inf <- setnames (inf, c("sucinf.calm", "sucinf.stormy", "sucinf.mid"), c("calm", "stormy", "mid"))
+
+#combined
+allsteps <- rbind (conc, enc, ads, inf)
+
+resize.win(6,6)
+
+#correct
+ggplot(enc, aes(x=as.factor(group), y=log10(mid), color=as.factor(group), shape=as.factor(group))) +
+  geom_point (size=5) + geom_errorbar(aes (ymax=log10(mid + stormy), ymin= log10(mid-calm))) + facet_grid(condition~virus)
+
+##make the plot
+
+variable_labs <- c(
+  `concentration` = 'concentration~(mL^{-1})',
+  `encounters` = 'encounters~entity^{-1}~d^{-1}',
+  `adsorption` = 'adsorptions~entity^{-1}~d^{-1}',
+  `infections` = 'infections~entity^{-1}~d^{-1}'
+)
+
+resize.win (11,7)#change virus to low and high
+allsteps$parameter <- reorder.factor (allsteps$parameter, new.order = c("concentration", "encounters", "adsorption", "infections"))
+
+ggplot(allsteps %>% filter (virus=="high"), aes(x=group, y=log10(mid), color=group, shape=group))  + 
+  geom_point (size=6) + 
+  geom_errorbar(aes (ymax=log10(mid + stormy), ymin= log10(mid-calm)), width=0.5, size=1) +
+  facet_grid(condition~parameter,labeller = labeller(parameter = as_labeller(variable_labs, label_parsed))) +
+  theme_Publication2() + theme (axis.title.x = element_blank(), legend.position = "none") + labs (y = expression(log[10])) + geom_hline(yintercept = log10(1), linetype="dashed") + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) 
+
+##edited according to the lab
+library(lemon)
+resize.win (10.5,6.5)
+ggplot(allsteps %>% filter (virus=="low"), aes(x=group, y=log10(stormy), color="stormy"))  + 
+  geom_point (size=6, position = position_dodge()) + 
+  geom_point (data=allsteps %>% filter (virus=="low"), aes (x=group, y=log10(mid), color="mid"), size=6, position = position_dodge()) +
+  geom_point (data=allsteps %>% filter (virus=="low"), aes (x=group, y=log10(calm), color="calm"), size=6, 
+              position = position_dodge()) +
+  facet_rep_grid(condition~parameter, ##tick marks 
+                 labeller = labeller(parameter = as_labeller(variable_labs, label_parsed))) +
+  theme_Publication2() + theme (axis.title.x = element_blank(), 
+                                strip.background.x  = element_blank(), strip.text.x = element_text (face="italic"),
+                                axis.ticks.length = unit(5, "pt"),panel.spacing.y = unit(1, "lines"), legend.title = element_blank()) + 
+  labs (y = expression(log[10])) + 
+  geom_hline(yintercept = log10(1), linetype="dashed") + 
+  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) 
+
+##calculate days to encounter, virus encountering an entity
+allsteps$days.calm <- 1/(allsteps$calm/allsteps$propEhV*allsteps$prophostnum)
+allsteps$days.mid <- 1/(allsteps$mid/allsteps$propEhV*allsteps$prophostnum)
+allsteps$days.stormy <- 1/(allsteps$stormy/allsteps$propEhV*allsteps$prophostnum)
+
+##calculate days to encounter, entity sense
+allsteps$days.calm.ent <- 1/allsteps$calm
+allsteps$days.mid.ent <- 1/allsteps$mid
+allsteps$days.stormy.ent <- 1/allsteps$stormy
+
+
+variable_labs2 <- c(
+  `concentration` = 'concentration~(mL^{-1})',
+  `encounters` = 'to~encounter',
+  `adsorption` = 'to~adsorb',
+  `infections` = 'to~be~infected'
+)
+
+resize.win (8.15,6.5)
+
+#entity sense
+ggplot(allsteps %>% filter (virus=="high") %>% filter (!(parameter=="concentration")), 
+       aes(x=group, y=log10(days.stormy.ent), color="stormy"))  + 
+  geom_point (size=6, position = position_dodge()) + 
+  geom_point (data=allsteps %>% filter (virus=="high") %>% filter (!(parameter=="concentration")), 
+              aes (x=group, y=log10(days.mid.ent), color="mid"), size=6, position = position_dodge()) +
+  geom_point (data=allsteps %>% filter (virus=="high") %>% filter (!(parameter=="concentration")), 
+              aes (x=group, y=log10(days.calm.ent), color="calm"), size=6, 
+              position = position_dodge()) +
+  facet_rep_grid(condition~parameter, ##tick marks 
+                 labeller = labeller(parameter = as_labeller(variable_labs2, label_parsed))) +
+  theme_Publication2() + theme (axis.title.x = element_blank(), strip.background.x  = element_blank(),
+                                axis.ticks.length = unit(5, "pt"),panel.spacing.y = unit(1, "lines"), 
+                                legend.title = element_blank()) + 
+  labs (y = expression(log[10]~"days for an entity")) + geom_hline(yintercept = log10(1), linetype="dashed") + 
+  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) 
+
+#write.table(allsteps, "Postdoc-R/Exported Tables/calmstormy_master7a_virsense_allstepsv2.csv", sep=";", col.names=T, row.names=F)
+
+##combine high and low
+high_all <- allsteps %>% filter (virus=="high") %>% filter (!(parameter=="concentration"))
+low_all <- allsteps %>% filter (virus=="low")  %>% filter (!(parameter=="concentration"))
+allsteps_comb_allcond <- high_all %>% select (c(group, condition, prophostnum, propEhV, parameter))
+conc_allcond <- allsteps %>% filter (parameter=="concentration") %>% select ("group", "condition", "prophostnum", "propEhV", "parameter", "mid")
+allsteps_comb_allcond$calm <- high_all$calm + low_all$calm
+allsteps_comb_allcond$mid <- high_all$mid + low_all$mid
+allsteps_comb_allcond$stormy <- high_all$stormy + low_all$stormy
+
+##calculate days to encounter, entity sense
+allsteps_comb_allcond$days.calm.ent <- 1/allsteps_comb_allcond$calm
+allsteps_comb_allcond$days.mid.ent <- 1/allsteps_comb_allcond$mid
+allsteps_comb_allcond$days.stormy.ent <- 1/allsteps_comb_allcond$stormy
+
+##correct concentration 
+allsteps_comb_allcondwithconc <- full_join(allsteps_comb_allcond, conc_allcond)
+
+#edited according to the lab
+library(lemon)
+resize.win (10.5,6.5)
+ggplot(allsteps_comb_allcondwithconc, aes(x=group, y=log10(stormy), color="stormy"))  + 
+  geom_point (size=6, position = position_dodge()) + 
+  geom_point (data=allsteps_comb_allcondwithconc, aes (x=group, y=log10(mid), color="mid"), size=6, position = position_dodge()) +
+  geom_point (data=allsteps_comb_allcondwithconc, aes (x=group, y=log10(calm), color="calm"), size=6, 
+              position = position_dodge()) +
+  facet_rep_grid(condition~parameter, ##tick marks 
+                 labeller = labeller(parameter = as_labeller(variable_labs, label_parsed))) +
+  theme_Publication2() + theme (axis.title.x = element_blank(), 
+                                strip.background.x  = element_blank(), strip.text.x = element_text (face="italic"),
+                                axis.ticks.length = unit(5, "pt"),panel.spacing.y = unit(1, "lines"), legend.title = element_blank()) + 
+  labs (y = expression(log[10])) + 
+  geom_hline(yintercept = log10(1), linetype="dashed") + 
+  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) 
+
+resize.win (3.4,6)
+ggplot(allsteps_comb_allcondwithconc %>% filter ((parameter=="encounters")), 
+       aes(x=group, y=log10(days.stormy.ent), color="stormy"))  + 
+  geom_point (size=6, position = position_dodge()) + 
+  geom_point (data=allsteps_comb_allcondwithconc %>%  filter ((parameter=="encounters")), 
+              aes (x=group, y=log10(days.mid.ent), color="mid"), size=6, position = position_dodge()) +
+  geom_point (data=allsteps_comb_allcondwithconc%>%  filter ((parameter=="encounters")), 
+              aes (x=group, y=log10(days.calm.ent), color="calm"), size=6, 
+              position = position_dodge()) +
+  facet_rep_grid(condition~.) +
+  theme_Publication2() + theme (axis.title.x = element_blank(), strip.background.x  = element_blank(),
+                                axis.ticks.length = unit(5, "pt"),panel.spacing.y = unit(1, "lines"), 
+                                legend.title = element_blank()) + 
+  labs (y = expression(log[10]~"days to encounter a virus ")) + geom_hline(yintercept = log10(1), linetype="dashed") + 
+  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) 
+
+#write.table(allsteps_comb_allcondwithconc, "Postdoc-R/Exported Tables/calmstormy_master7a_virsense_allstepscomb.csv", sep=";", col.names=T, row.names=F)
+
+#allsteps split
+#combined high and low
+high <- reshape(allsteps %>% filter (virus=="high") %>% select (c (group, condition, prophostnum, parameter, mid)), idvar=c("group", "condition", "prophostnum"), timevar="parameter", direction="wide")
+low <- reshape(allsteps %>% filter (virus=="low") %>% select (c (group, condition, prophostnum, parameter, mid)), idvar=c("group", "condition", "prophostnum"), timevar="parameter", direction="wide")
+
+allsteps_comb <- high %>% select (c(group, condition, prophostnum))
+
+#combine high and low, chose mid turbulence
+allsteps_comb$enccomb <- high$mid.encounters + low$mid.encounters
+allsteps_comb$adscomb <- high$mid.adsorption + low$mid.adsorption
+allsteps_comb$infcomb <- high$mid.infections + low$mid.infections
+
+##percentage of parameters
+allsteps_comb$perencounters <- (allsteps_comb$enccomb)*100
+allsteps_comb$peradsorbed <- (allsteps_comb$adscomb)*100
+allsteps_comb$perinf <- (allsteps_comb$infcomb)*100
+allsteps_comb <- allsteps_comb %>% mutate(perencounters= if_else(perencounters > 100, 100, perencounters)) %>% mutate(peradsorbed= if_else(peradsorbed > 100, 100, peradsorbed)) %>% mutate(perinf= if_else(perinf > 100, 100, perinf)) 
+
+allsteps_comb$perencounters_noenc <- 100- allsteps_comb$perencounters
+allsteps_comb$perads_noads <- 100- allsteps_comb$peradsorbed
+allsteps_comb$perinf_noinf <- 100- allsteps_comb$perinf
+
+#melt data
+melt_enc <- reshape2::melt(allsteps_comb %>% select ("group", "condition", "perencounters", "perencounters_noenc"), id.vars=c("group", "condition"))
+
+melt_ads <- reshape2::melt(allsteps_comb %>% select ("group", "condition", "peradsorbed", "perads_noads" ), id.vars=c("group","condition"))
+
+melt_inf <- reshape2::melt(allsteps_comb %>% select ("group", "condition", "perinf", "perinf_noinf" ), id.vars=c("group", "condition"))
+
+#encounters
+resize.win (6,4)
+
+#no watcon
+ggplot(melt_enc, aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +   coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#66c2a5", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+
+#adsorbed
+ggplot(melt_ads, aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +
+  coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#fc8d62", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+#infected
+ggplot(melt_inf %>% filter(!(group %in% c("lith"))), aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +
+  coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#8da0cb", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+
+
+#####under stormy conditions percentages
+#combined high.stormy and low.stormy
+high.stormy<- reshape(allsteps %>% filter (virus=="high") %>% select (c (group, condition, prophostnum, parameter, stormy)), idvar=c("group", "condition", "prophostnum"), timevar="parameter", direction="wide")
+low.stormy <- reshape(allsteps %>% filter (virus=="low") %>% select (c (group, condition, prophostnum, parameter, stormy)), idvar=c("group", "condition", "prophostnum"), timevar="parameter", direction="wide")
+
+allsteps_comb.stormy <- high.stormy %>% select (c(group, condition, prophostnum))
+
+#combine high.stormy and low.stormy, chose mid turbulence
+allsteps_comb.stormy$enccomb <- high.stormy$stormy.encounters + low.stormy$stormy.encounters
+allsteps_comb.stormy$adscomb <- high.stormy$stormy.adsorption + low.stormy$stormy.adsorption
+allsteps_comb.stormy$infcomb <- high.stormy$stormy.infections + low.stormy$stormy.infections
+
+##percentage of parameters
+allsteps_comb.stormy$perencounters <- (allsteps_comb.stormy$enccomb)*100
+allsteps_comb.stormy$peradsorbed <- (allsteps_comb.stormy$adscomb)*100
+allsteps_comb.stormy$perinf <- (allsteps_comb.stormy$infcomb)*100
+allsteps_comb.stormy <- allsteps_comb.stormy %>% mutate(perencounters= if_else(perencounters > 100, 100, perencounters)) %>% mutate(peradsorbed= if_else(peradsorbed > 100, 100, peradsorbed)) %>% mutate(perinf= if_else(perinf > 100, 100, perinf)) 
+
+allsteps_comb.stormy$perencounters_noenc <- 100- allsteps_comb.stormy$perencounters
+allsteps_comb.stormy$perads_noads <- 100- allsteps_comb.stormy$peradsorbed
+allsteps_comb.stormy$perinf_noinf <- 100- allsteps_comb.stormy$perinf
+
+#melt data
+melt_enc.stormy <- reshape2::melt(allsteps_comb.stormy %>% select ("group", "condition", "perencounters", "perencounters_noenc"), id.vars=c("group", "condition"))
+
+melt_ads.stormy <- reshape2::melt(allsteps_comb.stormy %>% select ("group", "condition", "peradsorbed", "perads_noads" ), id.vars=c("group","condition"))
+
+melt_inf.stormy <- reshape2::melt(allsteps_comb.stormy %>% select ("group", "condition", "perinf", "perinf_noinf" ), id.vars=c("group", "condition"))
+
+#encounters
+resize.win (6,4)
+
+#no watcon
+ggplot(melt_enc.stormy, aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +   coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#66c2a5", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+#adsorbed
+ggplot(melt_ads.stormy, aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +
+  coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#fc8d62", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+#infected
+ggplot(melt_inf.stormy %>% filter(!(group %in% c("lith"))), aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +
+  coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#8da0cb", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+
+####under calm conditions percentages
+#combined high.calm and low.calm
+high.calm<- reshape(allsteps %>% filter (virus=="high") %>% select (c (group, condition, prophostnum, parameter, calm)), idvar=c("group", "condition", "prophostnum"), timevar="parameter", direction="wide")
+low.calm <- reshape(allsteps %>% filter (virus=="low") %>% select (c (group, condition, prophostnum, parameter, calm)), idvar=c("group", "condition", "prophostnum"), timevar="parameter", direction="wide")
+
+allsteps_comb.calm <- high.calm %>% select (c(group, condition, prophostnum))
+
+#combine high.calm and low.calm, chose mid turbulence
+allsteps_comb.calm$enccomb <- high.calm$calm.encounters + low.calm$calm.encounters
+allsteps_comb.calm$adscomb <- high.calm$calm.adsorption + low.calm$calm.adsorption
+allsteps_comb.calm$infcomb <- high.calm$calm.infections + low.calm$calm.infections
+
+##percentage of parameters
+allsteps_comb.calm$perencounters <- (allsteps_comb.calm$enccomb)*100
+allsteps_comb.calm$peradsorbed <- (allsteps_comb.calm$adscomb)*100
+allsteps_comb.calm$perinf <- (allsteps_comb.calm$infcomb)*100
+allsteps_comb.calm <- allsteps_comb.calm %>% mutate(perencounters= if_else(perencounters > 100, 100, perencounters)) %>% mutate(peradsorbed= if_else(peradsorbed > 100, 100, peradsorbed)) %>% mutate(perinf= if_else(perinf > 100, 100, perinf)) 
+
+allsteps_comb.calm$perencounters_noenc <- 100- allsteps_comb.calm$perencounters
+allsteps_comb.calm$perads_noads <- 100- allsteps_comb.calm$peradsorbed
+allsteps_comb.calm$perinf_noinf <- 100- allsteps_comb.calm$perinf
+
+#melt data
+melt_enc.calm <- reshape2::melt(allsteps_comb.calm %>% select ("group", "condition", "perencounters", "perencounters_noenc"), id.vars=c("group", "condition"))
+
+melt_ads.calm <- reshape2::melt(allsteps_comb.calm %>% select ("group", "condition", "peradsorbed", "perads_noads" ), id.vars=c("group","condition"))
+
+melt_inf.calm <- reshape2::melt(allsteps_comb.calm %>% select ("group", "condition", "perinf", "perinf_noinf" ), id.vars=c("group", "condition"))
+
+#encounters
+resize.win (6,4)
+
+#no watcon
+ggplot(melt_enc.calm, aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +   coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#66c2a5", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+#adsorbed
+ggplot(melt_ads.calm, aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +
+  coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#fc8d62", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+#infected
+ggplot(melt_inf.calm %>% filter(!(group %in% c("lith"))), aes(x = "", y = value, fill=variable)) +
+  geom_bar(width = 1, stat = "identity", color = "black") +
+  coord_polar("y", start = 0)+
+  scale_fill_manual(values=c("#8da0cb", "#FFFFFF")) + theme_void() +  
+  theme (legend.position = "none", legend.text = element_text(size = 15), 
+         strip.text = element_text(size=15), legend.title=element_blank()) + facet_grid(condition~group) + 
+  geom_text(aes(y = value, label=sprintf("%0.2f%%", round(value, digits = 2))), size=5, position = position_stack(vjust = 0.5)) 
+
+####all host
+
+##summaries of all host entities
+
+allhost <- calmstormy %>% filter (condition=="shelf/slope") %>% select(c(group, beta_all, watcon, virus, propvir, ads, inf))
+
+allhost <- allhost[rep(seq_len(nrow(allhost)), 21), ]
+#4*18=72
+
+allhost$hostnum <- rep(c (1 %o% 10^(seq(0, 5, 0.25))), 1, each=18)
+
+#allhost <- allhost %>%
+  #mutate (prophost = case_when (group=="calcified" ~ hostnum, group=="naked" ~ hostnum*0.1,group=="lith" ~ hostnum*25))
+
+allhost <- allhost %>%
+  mutate (virnum = case_when (group=="calcified" ~ hostnum*30))
+
+allhost$virnum <- rep(c (30 %o% 10^(seq(0, 5, 0.25))), 1, each=18)
+
+#allhost <- allhost %>% mutate(virnum2= if_else(group == "Cc", virnum, virnum))
+
+#calculate propEhV
+allhost$propEhV <- allhost$virnum* allhost$propvir
+
+#use hostnum
+
+#calculate encounters fast slow
+allhost$encounters <- allhost$beta_all*allhost$propEhV 
+
+#calculate total adsorption by virus props
+allhost$adstot <- allhost$encounters*allhost$ads
+
+#calculate total successful infections
+allhost$sucinf <- allhost$encounters*allhost$ads*allhost$inf
+
+#choose the concentrations (length of df/3)
+
+allhost_conc <- allhost %>% filter (watcon=="mid") %>% select (group, virus, hostnum, virnum)
+#choose the concentrations (length of df/3)
+
+allhost_conc$parameter="concentration"
+allhost_conc$calm <- NA
+allhost_conc$stormy <- NA
+allhost_conc$mid <-allhost_conc$hostnum
+
+allhost_enc <- reshape(allhost %>% select (group, virus, hostnum, watcon, encounters, virnum), idvar=c("group", "virus", "hostnum", "virnum"), timevar="watcon", direction="wide")
+allhost_enc$parameter= "encounters"
+allhost_ads <- reshape(allhost %>% select (group, virus, hostnum, watcon, adstot, virnum), idvar=c("group", "virus", "hostnum", "virnum"), timevar="watcon", direction="wide")
+allhost_ads$parameter= "adsorption"
+allhost_inf <- reshape(allhost %>% select (group, virus, hostnum, watcon, sucinf, virnum), idvar=c("group", "virus", "hostnum", "virnum"), timevar="watcon", direction="wide")
+allhost_inf$parameter= "infections"
+
+#renaming
+allhost_enc <- setnames (allhost_enc, c("encounters.calm", "encounters.stormy", "encounters.mid"), c("calm", "stormy", "mid"))
+allhost_ads <- setnames (allhost_ads, c("adstot.calm", "adstot.stormy", "adstot.mid"), c("calm", "stormy", "mid"))
+allhost_inf <- setnames (allhost_inf, c("sucinf.calm", "sucinf.stormy", "sucinf.mid"), c("calm", "stormy", "mid"))
+
+#combined
+allhost_allsteps <- rbind (allhost_conc, allhost_enc, allhost_ads, allhost_inf)
+
+#correct
+ggplot(allhost_enc %>% filter (virus=="high"), aes(x=log10(virnum), y=log10(mid), color=as.factor(group), shape=as.factor(group))) +
+  geom_point (size=5) + geom_errorbar(aes (ymax=log10(mid + stormy), ymin= log10(mid-calm))) #+ facet_grid(~group)
+
+##plot
+
+allhost_allsteps$parameter <- reorder.factor (allhost_allsteps$parameter, new.order = c("concentration", "encounters", "adsorption", "infections"))
+
+resize.win (10,8)
+#change virus to low and high
+ggplot(allhost_allsteps %>% filter (virus=="low"), aes(x=log10(hostnum), y=log10(stormy), color="stormy"))  + 
+  geom_point (size=6, position = position_dodge()) + 
+  geom_point (data=allhost_allsteps %>% filter (virus=="low"), aes (x=log10(hostnum), y=log10(mid), color="mid"), size=6, position = position_dodge()) +
+  geom_point (data=allhost_allsteps %>% filter (virus=="low"), aes (x=log10(hostnum), y=log10(calm), color="calm"), size=6, 
+              position = position_dodge()) +
+  facet_rep_grid(group~parameter, ##tick marks 
+                 labeller = labeller(parameter = as_labeller(variable_labs, label_parsed))) +
+  theme_Publication2() + theme (strip.background.x  = element_blank(), 
+                                axis.ticks.length = unit(5, "pt"),panel.spacing.y = unit(1, "lines"), 
+                                legend.title = element_blank()) + 
+  labs (y = expression(log[10]), x =expression (log[10]~"host concentration"~mL^-1)) +  geom_hline(yintercept = log10(1), linetype="dashed") + 
+  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) 
+
+
+##combine high and low
+high_allhost <- allhost_allsteps  %>% filter (!(parameter=="concentration")) %>% filter (virus=="high")
+low_allhost <- allhost_allsteps  %>% filter (!(parameter=="concentration")) %>% filter (virus=="low")
+allhost_comb_diffconc <- high_allhost %>% select (c(group, hostnum, virnum, parameter)) 
+conc_diffconc <- allhost_allsteps %>% filter (parameter=="concentration") %>% select ("group", "hostnum", "virnum", "mid", "parameter")
+allhost_comb_diffconc$calm <- high_allhost$calm + low_allhost$calm
+allhost_comb_diffconc$mid <- high_allhost$mid + low_allhost$mid
+allhost_comb_diffconc$stormy <- high_allhost$stormy + low_allhost$stormy
+
+##calculate days to encounter, entity sense
+allhost_comb_diffconc$days.calm.ent <- 1/allhost_comb_diffconc$calm
+allhost_comb_diffconc$days.mid.ent <- 1/allhost_comb_diffconc$mid
+allhost_comb_diffconc$days.stormy.ent <- 1/allhost_comb_diffconc$stormy
+
+##correct concentration 
+allhost_comb_diffconcwithconc <- full_join(allhost_comb_diffconc, conc_diffconc)
+
+allhost_comb_diffconcwithconc$parameter <- reorder.factor (allhost_comb_diffconcwithconc$parameter, new.order = c("concentration", "encounters", "adsorption", "infections"))
+
+#edited according to the lab
+library(lemon)
+resize.win (10,8)
+ggplot(allhost_comb_diffconcwithconc, aes(x=log10(hostnum), y=log10(stormy), color="stormy"))  + 
+  geom_point (size=6, position = position_dodge()) + 
+  geom_point (data=allhost_comb_diffconcwithconc, aes (x=log10(hostnum), y=log10(mid), color="mid"), size=6, position = position_dodge()) +
+  geom_point (data=allhost_comb_diffconcwithconc, aes (x=log10(hostnum), y=log10(calm), color="calm"), size=6, 
+              position = position_dodge()) +
+  facet_rep_grid(group~parameter, ##tick marks 
+                 labeller = labeller(parameter = as_labeller(variable_labs, label_parsed))) +
+  theme_Publication2() + theme (strip.background.x  = element_blank(), strip.text.x = element_text (face="italic"),
+                                axis.ticks.length = unit(5, "pt"),panel.spacing.y = unit(1, "lines"), 
+                                legend.title = element_blank()) + 
+  labs (y = expression(log[10]), x =expression (log[10]~"host concentration"~mL^-1)) + 
+  geom_hline(yintercept = log10(1), linetype="dashed") + 
+  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) 
+
+##reshape to just get infections
+allhostinfcomb <- reshape2::melt(allhost_comb_diffconcwithconc %>% filter (parameter == "infections") %>% 
+                                   filter (!(group=="lith")) %>%
+                                   select (c(group, hostnum, virnum, calm, mid, stormy)), id.vars=c("group", "hostnum", "virnum"))
+
+##this is correct, just need to do a line denoting max naked cell pop and max calcified cell pop
+resize.win(8,6)
+ggplot(allhostinfcomb, aes (x=log10(virnum), y=log10(value*100), color=variable, linetype=group)) + 
+  geom_line (size=1) + theme_Publication2() +  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) +
+  labs (x=expression (log[10]~"virus concentration"~mL^-1), y= expression ("% population infected "~d^-1)) + 
+  theme (legend.title = element_blank(), legend.key.width = unit (1, "cm")) +   
+  scale_y_continuous(breaks = c(2, 1, 0, -1, -2, -3, -4),label = c(100, 10, 1, 0.1, 0.01, 0.001, 0.0001)) 
+
+ggplot(allhostinfcomb, aes (x=log10(hostnum), y=log10(value*100), color=variable, linetype=group)) + 
+  geom_line (size=1) + theme_Publication2() +  scale_color_manual (values=c('#2b57a7', '#ffc4b4', '#b11346')) +
+  labs (x=expression (log[10]~"host concentration"~mL^-1), y= expression ("% population infected "~d^-1)) + 
+  theme (legend.title = element_blank(), legend.key.width = unit (1, "cm")) +   geom_hline(yintercept = log10(10), linetype="dashed") +
+  scale_y_continuous(breaks = c(2, 1, 0, -1, -2, -3, -4),label = c(100, 10, 1, 0.1, 0.01, 0.001, 0.0001)) 
+
+###adsorption plot
+library(readxl)
+ads_plot <- read_excel("Postdoc-R/CSV Files/ads_updated_200909.xlsx")
+
+ads_plot$group <- reorder.factor (ads_plot$group, new.order = c("Nc", "Cc", "Li"))
+ads_plot$group <- factor (ads_plot$group,labels= c("naked", "calcified", "lith"))
+
+resize.win(4,4)
+ggplot (ads_plot, aes(x=group, y=log10(adscoef), color=group)) + geom_boxplot() + theme_Publication2() + 
+  theme (axis.title.x = element_blank(), legend.position = "none") + labs (y= expression(log[10]~K[d]~("mL"~"d"^-1))) +
+  scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) 
+
+ggplot (ads_plot, aes(x=group, y=adsef*100, color=group)) + geom_boxplot() + theme_Publication2() +  
+  theme (axis.title.x = element_blank(), legend.position = "none")+ labs(y = bquote(delta ~ "(%)")) +
+  scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a"))
+
+library (plotrix)
+cols <- c("adscoef", "adsef")
+ads_sum <- ads_plot %>% group_by(group) %>% 
+  summarise_at(.vars = cols,
+               funs(mean, sd))
+
+
+
+##make a contribution for betas
+
+resize.win (8,4)
+betas_contrib <- reshape2::melt(calmstormy %>% select (group, watcon, beta_BM, beta_DS, beta_turb), id.vars=c("group", "watcon"))
+
+betas_contrib$betasf <- factor (betas_contrib$variable,labels= c("Brownian motion", "Sinking", "Turbulence"))
+
+
+ggplot(betas_contrib, aes(x = group, y = value, fill=betasf)) +
+  geom_bar(position="fill", stat="identity") + 
+  facet_grid (~watcon) + theme_Publication2() + 
+  labs (y=expression("contribution to total "~beta)) +
+  theme (axis.title.x = element_blank(), legend.title = element_blank(), legend.key.width = unit (1, "cm")) +
+  scale_fill_manual (values=c('#615989', '#dfdfc1', '#c96700')) 
+
+

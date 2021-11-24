@@ -313,6 +313,11 @@ all$E_all_low_resvi <- all$beta_all*all$hostlow*ViNum
 
 all$E_all_high_resvi <- all$beta_all*all$hosthigh*ViNum*(10^2)
 
+#just for brownian motion, for Ali and Ben
+all$beta_BMenc <- all$beta_BM*(10^4) #viruses
+all$beta_BMenc_daysto <- 1/all$beta_BMenc #viruses
+
+
 #9d. plotting
 resize.win(8,5)
 ggplot(data=all, aes(x=disrate,y = E_all_lowhost , color=group, fill=group)) + 

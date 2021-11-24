@@ -25,22 +25,34 @@ sinkvel_filter <- sinkvel_all %>% filter (!(ref %in% c("Lecourt et al. 1996", "B
 
 #sinking velocity
 
-resize.win (11, 6)
+resize.win (9, 6)
 
-ggplot(data=sinkvel_filter, aes(x=as.factor(group2), y=log10(SinkVel))) + geom_boxplot() +
-  geom_point(size=4, position=position_jitter(), aes(color=ref)) +
+#change shapes
+sinkvel_filter <- sinkvel_filter %>% mutate(group3 = case_when(group2 == "cells" ~ "cells",
+                                                               group2 == "field aggregates" ~ "aggregates", 
+                                                               group2 == "lab aggregates" ~ "aggregates"))
+
+sinkvel_filter$group3 <- reorder.factor (sinkvel_filter$group3, new.order = c("cells", 'aggregates'))                                                             
+                                                               
+ggplot(data=sinkvel_filter, aes(x=as.factor(group3), y=log10(SinkVel))) + geom_boxplot() +
+  geom_point(size=5, position=position_jitter(), aes(color=ref, shape=group2)) +
   labs (y = expression(log[10]~"sinking velocity "~("m"~d^-1)), color="reference") +  
   geom_hline(yintercept = log10(1), linetype="dashed")  +
-  scale_color_manual(values=c('#5e77dc', '#7395de', '#8ab2dc', '#a9ced0', '#ffde73', '#c2b9aa', '#bdab9d', '#b89e90', '#8fa03c')) +
-  #scale_shape_manual (values=c (c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 16, 1, 1, 1))) +
+  scale_color_manual(values=c('#5e77dc', '#7395de', '#8ab2dc', '#a9ced0', '#ffde73', '#c2b9aa', '#bdab9d', '#b89e90', '#8fa03c')) + scale_shape_manual(values=c(19, 15, 17)) +
   theme_Publication2()+
   theme (axis.title.x = element_blank(), legend.position="right", legend.direction = "vertical", legend.title = element_blank())
 
-ggplot(data=sinkvel_filter, aes(x=as.factor(group2), y=log10(beta_DS))) + geom_boxplot() +
-  geom_point(size=4, position=position_jitter(), aes(color=ref)) +
+ggplot(data=sinkvel_filter, aes(x=as.factor(group3), y=log10(beta_DS))) + geom_boxplot() +
+  geom_point(size=5, position=position_jitter(), aes(color=ref, shape=group2)) +
   labs (y = expression(log[10]~beta[S]~("encounters "~mL~d^-1)), color="reference") +
   geom_hline(yintercept = log10(1), linetype="dashed")  +
-  scale_color_manual(values=c('#5e77dc', '#7395de', '#8ab2dc', '#a9ced0', '#ffde73', '#c2b9aa', '#bdab9d', '#b89e90', '#8fa03c')) +
-  #scale_shape_manual (values=c (c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 16, 1, 1, 1))) +
+  scale_color_manual(values=c('#5e77dc', '#7395de', '#8ab2dc', '#a9ced0', '#ffde73', '#c2b9aa', '#bdab9d', '#b89e90', '#8fa03c')) + scale_shape_manual(values=c(19, 15, 17)) +
   theme_Publication2()+
   theme (axis.title.x = element_blank(), legend.position="right", legend.direction = "vertical", legend.title = element_blank())
+
+sum.sinkvel <- summarySE(data=sinkvel_filter, measurevar = "SinkVel", group=c("group2"))
+sum.beta <- summarySE(data=sinkvel_filter, measurevar = "beta_DS", group=c("group2"))
+
+
+sinkvel_filter$beta_adj <- (pi*(((sinkvel_filter$rad*0.1)+Rehv)^2)*(abs((sinkvel_filter$SinkVel-Ehv_SinkVel))))*10^6 
+##note: not true for cells

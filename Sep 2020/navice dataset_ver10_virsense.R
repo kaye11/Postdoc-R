@@ -1,7 +1,7 @@
 #data is wrangled in excel because it is easier
 
 source("inspack.R")
-navice <- read.csv("D:/R program/Postdoc-R/Exported Tables/navice_alldata_foranalysis_200629.csv", sep=";") #averaged Cc beta_DS was used
+navice_orig <- read.csv("D:/R program/Postdoc-R/Exported Tables/navice_alldata_foranalysis_200629.csv", sep=";") #averaged Cc beta_DS was used
 
 #BM
 library(readxl)
@@ -27,8 +27,12 @@ navice$date <- as.Date(navice$date)
 navice$date <-format(navice$date , format="%m-%d")
 navice$date2 = factor(navice$date, levels=c("06-30","07-01", "07-02", "07-03", "07-04", "07-05", "07-07", "07-08", "07-09","07-10", "07-06","07-12","06-24", "06-25", "06-27"))
 
+#for checking trends with depth, change x to ads and inf
+ggplot(navice_orig %>% filter (entitycode=="Ehux") %>% filter (depth > -50), aes(x=depth, y=log10(abundance)))  + geom_point()  + geom_smooth () +coord_flip()
+
+
 #trim data
-navice <- navice%>% filter (depth>=(-30)) 
+navice <- navice_orig %>% filter (depth>=(-30)) 
 navice_alldata <- navice %>% filter (!(entityperml %in% c("Ehux_total", "EhVExtra")))
 
 #calculate betas
@@ -68,19 +72,24 @@ ggplot(navice.sum %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith
   theme(legend.title=element_blank(), axis.text.x=element_blank(), axis.title.x=element_blank()) + facet_wrap(entitycode~., scales="free") +
   scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506"))
 
+
 #boxplots
 
 navice$entitycode <- reorder.factor (navice$entitycode, new.order = c("Ehux", "Nc", "Cc", "Vi" ,"Li"))
 
 navice$entitycode <- factor (navice$entitycode, levels = c("Cc", "Ehux", "Li", "Nc", "Vi"),
-                                 labels = c("calcified", "calcified E. huxleyi", "coccoliths", "naked", "EhVs"))
+                                 labels = c("calcified", "E. huxleyi", "lith", "naked", "EhVs"))
 
 navice$Infection <- factor (navice$Infection, levels = c("Early Infection", "Early Infection 2", "Early Infection 3", "Late Infection","Post Bloom"), labels = c("Early Infection 1", "Early Infection 2", "Early Infection 3", "Late Infection","Post Infection"))
 
-resize.win(10,4.5)
-ggplot(navice %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith")), aes(x=date2, y=log10(abundance), color=Infection)) + geom_boxplot() + geom_point (size=4)  + geom_smooth(aes(group=1), color="#525252", method="loess") +
+#entity concentration
+resize.win(11.5,4.5)
+ggplot(navice %>% filter (entityperml %in% c("Ehux_total", "EhVIntra", "lith")), 
+       aes(x=date2, y=log10(abundance), color=Infection)) + geom_boxplot() + geom_point (size=4)  + 
+  geom_smooth(aes(group=1), color="#525252", method="loess") +
   labs (y = expression(log[10]~"concentration "~"mL"^-1), x= "date", color="infection phase") + theme_Publication2() +
-  theme(legend.title=element_blank(), axis.text.x=element_blank(), axis.title.x=element_blank()) + facet_wrap(entitycode~., scales="free") +
+  theme(legend.title=element_blank(), axis.text.x=element_blank(), axis.title.x=element_blank(),  
+        panel.spacing.x = unit(0.5, "lines"),legend.margin=margin(0,0,0,0), axis.ticks.length = unit(5, "pt")) + facet_wrap(entitycode~., scales="free") +
   scale_color_manual (values=c("#CC79A7","#fdb462","#7fc97f", "#D55E00","#662506"))
 
 #calculate encounters, for this remove EhVdata
@@ -189,39 +198,74 @@ variable_labs <- c(
 )
 
 #change labels
-resize.win(10,4.5)
+resize.win(10, 4)
 melted_EI3$group <- factor (melted_EI3$entitycode,labels= c("naked", "calcified", "lith"))
 melted_EI3$variable <-  reorder.factor (melted_EI3$variable, new.order = c("abundance", "enccomb", "adscomb", "infcomb")) 
 
-ggplot(melted_EI3, aes(x=group, y=log10(value), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + facet_grid(~variable, labeller = labeller(variable = as_labeller(variable_labs, label_parsed))) + theme_Publication2() + theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none") + labs (y=expression(log[10])) + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
+ggplot(melted_EI3, aes(x=group, y=log10(value), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + facet_grid(~variable, labeller = labeller(variable = as_labeller(variable_labs, label_parsed))) + 
+  theme_Publication2() + 
+  theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none") + labs (y=expression(log[10])) + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
 
 #for checking trends with depth, change x to ads and inf
 ggplot(navice_EI_comb, aes(x=depth, y=log10(enccomb), color=entitycode))  + geom_point()  + geom_smooth () +coord_flip() + facet_grid(~entitycode) 
 
 #calculate days to encounter, virus sense
 melted_EI3$daysvir <- 1/(melted_EI3$value/melted_EI3$propEhV*melted_EI3$abundance)
-melted_EI3$daysent <- 1/melted_EI3$value
+melted_EI3$daysent <- 1/melted_EI3$value #this is what is used
+melted_EI3$percent <- melted_EI3$value*100
 
 ##plot
 variable_labs2 <- c(
   `abundance` = 'concentration~(mL^{-1})',
   `enccomb` = 'to~encounter',
   `adscomb` = 'to~adsorb',
-  `infcomb` = 'to~infect'
+  `infcomb` = 'to~be~infected'
 )
 
 #for virus
-resize.win(8,4.5)
+resize.win(9.5,4.5)
 ggplot(melted_EI3 %>% filter (!(variable=="abundance")), aes(x=group, y=log10(daysvir), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + facet_grid(~variable, labeller = labeller(variable = as_labeller(variable_labs2, label_parsed))) + theme_Publication2() + theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none") + labs (y=expression(log[10]~"days for virus")) + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
 
 #for entity
-ggplot(melted_EI3 %>% filter (!(variable=="abundance")), aes(x=group, y=log10(daysent), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + facet_grid(~variable, labeller = labeller(variable = as_labeller(variable_labs2, label_parsed))) + theme_Publication2() + theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none") + labs (y=expression(log[10]~"days for entity")) + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
+ggplot(melted_EI3 %>% filter (!(variable=="abundance")), aes(x=group, y=log10(daysent), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + facet_grid(~variable, labeller = labeller(variable = as_labeller(variable_labs2, label_parsed))) + theme_Publication2() + 
+  theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none",  
+         panel.spacing.x = unit(1.5, "lines"),legend.margin=margin(0,0,0,0),strip.background.x  = element_blank(),
+         axis.ticks.length = unit(5, "pt")) +
+  labs (y=expression(log[10]~"days for an entity")) + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
+
+#for entity, encounter only
+#for entity
+resize.win(3.5, 4)
+ggplot(melted_EI3 %>% filter ((variable=="enccomb")), aes(x=group, y=log10(daysent), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + theme_Publication2() + 
+  theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none",  
+         panel.spacing.x = unit(1.5, "lines"),legend.margin=margin(0,0,0,0),strip.background.x  = element_blank(),
+         axis.ticks.length = unit(5, "pt")) +
+  labs (y=expression(log[10]~"days to encounter a virus ")) + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a")) +   geom_hline(yintercept = log10(1), linetype="dashed") 
+
+write.table(melted_EI3, "Postdoc-R/Exported Tables/melted_navice_30m_v10_virsense_meltedEI3.csv", sep=";", col.names=T, row.names=F)
+
+ggplot(melted_EI3 %>% filter ((variable=="infcomb")) %>% filter (!(group=="lith")), aes(x=group, y=log10(percent), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + theme_Publication2() + 
+  scale_y_continuous(breaks = c(1, 0, -1, -2, -3, -4),label = c(10, 1, 0.1, 0.01, 0.001, 0.0001)) +
+  theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none",  
+         panel.spacing.x = unit(1.5, "lines"),legend.margin=margin(0,0,0,0),strip.background.x  = element_blank(),
+         axis.ticks.length = unit(5, "pt")) + 
+  labs (y=expression("% population infected "~d^-1)) + scale_color_manual (values=c("#e41a1c", "#377eb8")) 
+
+resize.win(4, 4)
+
+ggplot(melted_EI3 %>% filter ((variable=="adscomb")), aes(x=group, y=log10(percent), color=entitycode))  + geom_boxplot() + geom_point (position=position_jitterdodge()) + theme_Publication2() + 
+  scale_y_continuous(breaks = c(1, 0, -1, -2, -3, -4),label = c(10, 1, 0.1, 0.01, 0.001, 0.0001)) +
+  theme (legend.title = element_blank(), axis.title.x = element_blank(), legend.position = "none",  
+         panel.spacing.x = unit(1.5, "lines"),legend.margin=margin(0,0,0,0),strip.background.x  = element_blank(),
+         axis.ticks.length = unit(5, "pt"), axis.title.y = element_text(vjust=0.001)) + 
+  labs (y=expression("% population with\nadsorbed EhVs"~d^-1)) + scale_color_manual (values=c("#e41a1c", "#377eb8", "#4daf4a"))
 
 wind.sum <- summarySE(data=navice_alldata, measurevar = "disrate", group=c("depth"))
-resize.win(6,6)
 #this is the only one that works
 
 wind.sum$depth <- abs(wind.sum$depth)
+
+resize.win(5,5)
 
 ggplot(wind.sum, aes(y=log10(disrate), x=depth)) + geom_point (size=6)  + geom_errorbar(aes(ymin=log10(disrate-se), ymax=log10(disrate+se)), width=2, size=1.3) + coord_flip() + scale_y_continuous(position = 'left') + theme_Publication2() + scale_x_continuous(breaks = c (0, 10, 20, 30), trans="reverse")+ labs (y = expression(log[10]~epsilon~(m^2~s^-3)), x="depth (m)") + geom_smooth(color="#525252", size=1.1)
 
